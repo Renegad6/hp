@@ -8,7 +8,7 @@ source $(getScriptPath)/common.sh
 rm -f tags;
 for d in $(cat rebtags|grep -v "^#");
 do
-  ctags -R -a --exclude=.git --exclude=.svn --exclude=opkgbuild --c++-kinds=+p --fields=+iaS --extra=+q $d;
+  ctags -R -a --exclude=.git --exclude=.svn --exclude=opkgbuild --exclude=TARGETS --c++-kinds=+p --fields=+iaS --extra=+q $d;
 done;
 
 exit 0;
