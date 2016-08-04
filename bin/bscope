@@ -1,0 +1,17 @@
+#!/bin/sh -e
+# $Header: /usersnfs/deantoni/common/bin/RCS/bscope,v 1.1 2016/08/02 09:50:22 deantoni Exp $
+
+getScriptPath () {
+  echo ${0%/*}/
+}
+source $(getScriptPath)/common.sh
+rm -f cscope.*;
+for d in $(cat rebtags|grep -v "^#");
+do
+  find $d -name "*.h" >> cscope.files;
+  find $d -name "*.c" >> cscope.files;
+  find $d -name "*.cpp" >> cscope.files;
+done;
+cscope -b -q -k;
+
+exit 0;

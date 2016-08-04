@@ -1,0 +1,4 @@
+# $Header: /usersnfs/deantoni/bin/RCS/psgrp,v 1.1 2016/06/14 09:37:42 deantoni Exp $
+# Procesos en background agrupados
+ps x -o  "%r %p %y %x %a "|sort -n
+echo "hacer: %> kill -TERM -<PGID>"

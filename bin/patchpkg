@@ -1,0 +1,52 @@
+#!/bin/sh -e
+# $Header: /usersnfs/deantoni/bin/RCS/patchpkg,v 1.1 2016/07/01 13:04:04 deantoni Exp $
+
+getScriptPath () {
+  echo ${0%/*}/
+}
+
+source $(getScriptPath)/common.sh
+
+cat > /tmp/$$pkgpatch.awk << EOF
+BEGIN{
+  i=1;
+  while (getline < vfile)
+  {
+    split(\$0,ft," - ");
+    packs[i]=ft[1];
+    vers[i]=ft[2];
+    sub("-devel","",packs[i]);
+#sub(target,"\$t",packs[i]);
+#print packs[i]"#"vers[i]
+    i++;
+  }
+}
+{
+    gsub("_.t","_"target,\$0);
+    for(j=1;j<i;j++)
+    {
+        if(match(\$0,"['\"]"packs[j]"['\"]"))
+        {
+            sub(packs[j],packs[j]"="vers[j],\$0);
+        }
+    }
+    print \$0;
+}
+EOF
+
+if ! test -f "$1"
+then
+    echo "$1 doesnt exist!";
+    exit -1;
+fi;
+
+if ! test -f "$3"
+then
+    echo "$3 doesnt exist!";
+    exit -1;
+fi;
+
+awk -v vfile=$1 -v target=$2 -f /tmp/$$pkgpatch.awk $3 > patch.$3;
+
+rm -f /tmp/$$*;
+exit 0;

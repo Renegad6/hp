@@ -1,0 +1,11 @@
+if test -z "$1"
+then
+  echo "No encontrado!";
+fi;
+
+if test -d /sirius/work/$1
+then 
+   ln -fs /sirius/work/$1 ~/wd;
+else
+    echo "No encontrado!";
+fi;

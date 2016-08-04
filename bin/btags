@@ -1,0 +1,14 @@
+#!/bin/sh -e
+# $Header: /usersnfs/deantoni/common/bin/RCS/btags,v 1.1 2016/08/02 09:50:22 deantoni Exp $
+
+getScriptPath () {
+  echo ${0%/*}/
+}
+source $(getScriptPath)/common.sh
+rm -f tags;
+for d in $(cat rebtags|grep -v "^#");
+do
+  ctags -R -a --exclude=.git --exclude=.svn --exclude=opkgbuild --c++-kinds=+p --fields=+iaS --extra=+q $d;
+done;
+
+exit 0;
