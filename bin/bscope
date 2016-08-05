@@ -1,16 +1,16 @@
 #!/bin/sh -e
 # $Header: /usersnfs/deantoni/common/bin/RCS/bscope,v 1.1 2016/08/02 09:50:22 deantoni Exp $
 
-getScriptPath () {
+getScriptname () {
   echo ${0%/*}/
 }
-source $(getScriptPath)/common.sh
+source $(getScriptname)/common.sh
 rm -f cscope.*;
 for d in $(cat rebtags|grep -v "^#");
 do
-  find $d -name "*.h" >> cscope.files;
-  find $d -name "*.c" >> cscope.files;
-  find $d -name "*.cpp" >> cscope.files;
+  find $d -type d \( -name ".svn" -o -name "opkgbuild" -o -name ".git" -o -name "TARGETS" \) -prune -o -type f -name "*.h" >> cscope.files;
+  find $d -type d \( -name ".svn" -o -name "opkgbuild" -o -name ".git" -o -name "TARGETS" \) -prune -o -type f -name "*.c" >> cscope.files;
+  find $d -type d \( -name ".svn" -o -name "opkgbuild" -o -name ".git" -o -name "TARGETS" \) -prune -o -type f -name "*.cpp" >> cscope.files;
 done;
 cscope -b -q -k;
 
