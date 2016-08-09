@@ -34,7 +34,7 @@ do
     cd $REPO;
     echo "$(date) backing up: "$REPO >> $TRZ;
 # First update trunk or diff wont work!
-    git fetch -all >> $TRZ 2>&1;
+    git fetch --all >> $TRZ 2>&1;
 # For all local branches
     BRANCHES=$(git branch|grep -v trunk|awk -F ' +' '! /\(no branch\)/ {print $2}');
     for BRANCH in $(echo $BRANCHES);
