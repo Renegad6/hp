@@ -88,7 +88,7 @@ do
         fi;
       else
 #CI BUILD pack
-        REALPACK=${REALPACK%"_"$TARGET};
+        REALPACK=${PACKNAME%"_"$TARGET};
         MAJORREV=$(echo $VERPACK|cut -f1 -d'.');#echo "MAJ:"$MAJORREV;
         MINORREV=$(echo $VERPACK|cut -f2 -d'.'|sed -e"s/CIBUILDX//"|sed -e"s/[0-9][0-9]$//");#echo "MIN:"$MINORREV;
         URL="http://"$cipacks""$MINORREV"/"$REALPACK"_"$MAJORREV"_"$TARGET"/"$REALPACK"_"$TARGET"-devel_"$VERPACK"_armv7h.ipk";
