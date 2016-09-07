@@ -82,7 +82,7 @@ do
           FOLDER=$(echo $(basename $(grep Package:\ $REALPACK $SYSROOT/*|cut -f1 -d':'))|sed -e's/-int/\/int/');
           URL="http://"$packs"/"$FOLDER"/"$REALPACK"_"$VERPACK"_armv7h.ipk";
           URL2="http://"$packs"/"$FOLDER"/"$REALPACK"_"$VERPACK"_all.ipk";
-          URL3="http://"$packstrunk"/"$PACKNAME"_"$VERPACK"_armv7h.ipk";
+          URL3="http://"$packstrunk"/"$REALPACK"_"$VERPACK"_armv7h.ipk";
         else
           URL="";
         fi;
