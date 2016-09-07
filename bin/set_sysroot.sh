@@ -62,11 +62,11 @@ do
 done;
 for pack in $(cat /tmp/$$deps);
 do
-    REALPACK=$(echo $pack|cut -f1 -d'='|sed -e"s/\[devel\]//"|sed -e"s/\%t/$TARGET/");
+    PACKNAME=$(echo $pack|cut -f1 -d'='|sed -e"s/\[devel\]//"|sed -e"s/\%t/$TARGET/");
     VERPACK=$(echo $pack|cut -f2 -d'=');
-    echo "$(date) Processing: $REALPACK/$VERPACK";
+    echo "$(date) Processing: $PACKNAME/$VERPACK";
 # Compare version with already installed.
-    VERINS=$(ropkg list-installed |grep -w $REALPACK-devel|sed -e"s/\ -\ /#/"|cut -f2 -d'#');#echo "VERINS:("$VERINS")("$VERPACK")"
+    VERINS=$(ropkg list-installed |grep -w $PACKNAME-devel|sed -e"s/\ -\ /#/"|cut -f2 -d'#');#echo "VERINS:("$VERINS")("$VERPACK")"
     if test "$VERINS" "=" "$VERPACK"
     then
       echo "$(date) Version already installed skipping";
@@ -75,13 +75,14 @@ do
       if test -z "$ISCIB"
       then
 #regular pack
-        REALPACK=$REALPACK"-devel";
+        REALPACK=$PACKNAME"-devel";
         FOLDER=$(grep Package:\ $REALPACK $SYSROOT/*|cut -f1 -d':');#echo "FOLDER:"$FOLDER;
         if ! test -z "$FOLDER"
         then
           FOLDER=$(echo $(basename $(grep Package:\ $REALPACK $SYSROOT/*|cut -f1 -d':'))|sed -e's/-int/\/int/');
           URL="http://"$packs"/"$FOLDER"/"$REALPACK"_"$VERPACK"_armv7h.ipk";
           URL2="http://"$packs"/"$FOLDER"/"$REALPACK"_"$VERPACK"_all.ipk";
+          URL3="http://"$packstrunk"/"$PACKNAME"_"$VERPACK"_armv7h.ipk";
         else
           URL="";
         fi;
@@ -92,6 +93,7 @@ do
         MINORREV=$(echo $VERPACK|cut -f2 -d'.'|sed -e"s/CIBUILDX//"|sed -e"s/[0-9][0-9]$//");#echo "MIN:"$MINORREV;
         URL="http://"$cipacks""$MINORREV"/"$REALPACK"_"$MAJORREV"_"$TARGET"/"$REALPACK"_"$TARGET"-devel_"$VERPACK"_armv7h.ipk";
         URL2="http://"$cipacks""$MINORREV"/"$REALPACK"_"$MAJORREV"_service/"$REALPACK"-devel_"$VERPACK"_armv7h.ipk";
+        URL3="";
       fi;
       if ! test -z "$URL"
       then
@@ -100,6 +102,10 @@ do
         if [ $? -ne 0 ]
         then
           wget $URL2 -P /tmp/$$setsys;
+        fi;
+        if [ $? -ne 0 ]
+        then
+          wget $URL3 -P /tmp/$$setsys;
           if [ $? -ne 0 ]
           then
             echo $pack >> $$nofound;
