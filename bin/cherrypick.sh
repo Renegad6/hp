@@ -30,7 +30,9 @@ done;
 for rev in $(tac /tmp/$$cherr_rev|cut -f1 -d'|'|sed -e"s/^ *r//"); # 'tac' list file in reverse order
 do
 echo $rev;
-    /opt/CollabNet_Subversion/bin/svn merge -c $rev .
+# svn merge -c doesnt work! (maybe bcause mergeinfo issues)
+    /opt/CollabNet_Subversion/bin/svn diff -c $rev > /tmp/$$cherr_patch;
+    /opt/CollabNet_Subversion/bin/svn patch /tmp/$$cherr_patch;
 done;
 
 exit 0;
