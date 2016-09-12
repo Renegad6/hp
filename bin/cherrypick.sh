@@ -20,6 +20,18 @@ fi;
 /opt/CollabNet_Subversion/bin/svn update;
 /opt/CollabNet_Subversion/bin/svn log | perl -l40pe 's/^-+/\n/' >/tmp/$$cherr_rev;
 
+# fuera a partir del primer merge
+cat > /tmp/$$cherry.awk << EOF
+BEGIN{fuera=0;}
+{
+    fuera=(fuera || match(\$0,"merged"));
+    if(!fuera) print \$0;
+}
+EOF
+awk -f /tmp/$$cherry.awk  /tmp/$$cherr_rev > /tmp/$$new_cherry;
+mv /tmp/$$new_cherry /tmp/$$cherr_rev;
+
+
 for kw in $(cat cherry);
 do
 echo $kw;
