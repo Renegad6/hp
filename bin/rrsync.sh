@@ -18,7 +18,7 @@ fi;
 
 for record in $(cat rrsync|grep -v "^#");
 do
-echo $record
+#echo $record
     USER=$(echo $record|cut -f1 -d',');
     RFOLD=$(echo $record|cut -f2 -d',');
     LFOLD=$(echo $record|cut -f3 -d',');
