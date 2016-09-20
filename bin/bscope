@@ -8,10 +8,9 @@ source $(getScriptname)/common.sh
 rm -f cscope.*;
 for d in $(cat rebtags|grep -v "^#");
 do
-  find $d -type d \( -name ".svn" -o -name "opkgbuild" -o -name ".git" -o -name "TARGETS" \) -prune -o -type f -name "*.h" >> cscope.files;
   find $d -type d \( -name ".svn" -o -name "opkgbuild" -o -name ".git" -o -name "TARGETS" \) -prune -o -type f -name "*.c" >> cscope.files;
   find $d -type d \( -name ".svn" -o -name "opkgbuild" -o -name ".git" -o -name "TARGETS" \) -prune -o -type f -name "*.cpp" >> cscope.files;
 done;
-cscope -b -q -k;
+cscope -b;
 
 exit 0;
