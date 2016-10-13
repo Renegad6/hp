@@ -1,6 +1,6 @@
 #!/bin/sh -e
 # $Header: /usersnfs/deantoni/common/bin/RCS/bckup.sh,v 1.5 2016/08/04 07:34:55 deantoni Exp $
-# A 'branches' file must exist on the backup dir.
+# A 'repos' file must exist on the backup dir.
 # Its structure must be (all the branches that must be backed up)
 # <sandbox path>#<branch>
 # <sandbox path>#<branch>
