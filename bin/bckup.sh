@@ -39,10 +39,11 @@ do
     BRANCHES=$(git branch|grep -v trunk|awk -F ' +' '! /\(no branch\)/ {print $2}');
     for BRANCH in $(echo $BRANCHES);
     do
-      echo "$(date)  ...... backing up: "$BRANCH >> $TRZ;
+      ORIG=origin/$(git branch -vv|grep $BRANCH|sed -e"s/^.*origin\///"|cut -f1 -d':');
+      echo "$(date)  ...... backing up: "$BRANCH:$ORIG >> $TRZ;
       TS=$(timestamp);
       FILE=$(basename $REPO).$BRANCH.$TS.diff.gz;
-      git diff $(git merge-base --fork-point $BRANCH)..$BRANCH| gzip -c > $BCKDIR/$FILE;
+      git diff $(git merge-base --fork-point $ORIG)..$BRANCH| gzip -c > $BCKDIR/$FILE;
     done;
 done;
 echo "$(date) end bck" >> $TRZ;
