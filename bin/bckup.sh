@@ -1,10 +1,7 @@
 #!/bin/sh -e
 # $Header: /usersnfs/deantoni/common/bin/RCS/bckup.sh,v 1.5 2016/08/04 07:34:55 deantoni Exp $
-# A 'repos' file must exist on the backup dir.
-# Its structure must be (all the branches that must be backed up)
-# <sandbox path>#<branch>
-# <sandbox path>#<branch>
-# <sandbox path>#<branch>
+# A 'repos' file must exist on the backup dir with all repositories to be bcked up
+# in those repos all branches will be backed , they must be tracking remote branches for it to work
 #...
 
 getScriptPath () {
