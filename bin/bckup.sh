@@ -42,7 +42,7 @@ do
       echo "$(date)  ...... backing up: "$BRANCH >> $TRZ;
       TS=$(timestamp);
       FILE=$(basename $REPO).$BRANCH.$TS.diff.gz;
-      git diff $(git merge-base trunk $BRANCH)..$BRANCH| gzip -c > $BCKDIR/$FILE;
+      git diff $(git merge-base --fork-point $BRANCH)..$BRANCH| gzip -c > $BCKDIR/$FILE;
     done;
 done;
 echo "$(date) end bck" >> $TRZ;
