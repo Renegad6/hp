@@ -45,4 +45,13 @@ do
 done;
 echo "$(date) end bck" >> $TRZ;
 
+# Dump de svnrep (todos los proyectos)
+echo "$(date)  backing up svnrep " >> $TRZ;
+for d in $(ls -d /users/deantoni/svnrep/*);
+do
+    PRJ=$(basename $d);
+    echo "$(date)  ...... backing up: $PRJ " >> $TRZ;
+    (/opt/CollabNet_Subversion/bin/svnadmin dump $d |gzip -c > /usersnfs/deantoni/common/backup/svnrep_$PRJ.dump.gz) > /dev/null 2>&1;
+done;
+
 exit 0;
