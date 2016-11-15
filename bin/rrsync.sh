@@ -29,6 +29,10 @@ if ! test -z "$DEL";
 then
     EXTRAPAR=$EXTRAPAR\ --delete;
 fi;
+if ! test -d "$LFOLD"
+then
+    mkdir -p $LFOLD;
+fi;
 rsync $EXTRAPAR -a --exclude '.svn' $USER:$RFOLD $LFOLD;
 done;
 
