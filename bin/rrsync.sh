@@ -1,8 +1,10 @@
 #!/bin/sh -e
 # $Header:$
-# sync current folder with remote one.Must have a 'rrsync' file on current folder.
+# sync current folder with remote one (remote -> local).Must have a 'rrsync' file on current folder.
 # Structure: every line:
 #   user@host,remote_folder,local_folder,delete
+# args:
+#   -r: Reverse sync direction (local -> remote).
 
 getScriptPath () {
   echo ${0%/*}/
@@ -15,6 +17,7 @@ then
     echo "'rrsync' file does not exist!";
     exit -1;
 fi;
+
 
 EXTRAPAR="";
 for record in $(cat rrsync|grep -v "^#");
@@ -33,7 +36,14 @@ if ! test -d "$LFOLD"
 then
     mkdir -p $LFOLD;
 fi;
-rsync $EXTRAPAR -a --exclude '.svn' $USER:$RFOLD $LFOLD;
+
+if ! test "$1" -eq "-r"
+    rsync $EXTRAPAR -a --exclude '.svn' $USER:$RFOLD $LFOLD;
+else
+    echo "reverse";
+    rsync $EXTRAPAR -a --exclude '.svn' $USER:$LFOLD $RFOLD;
+fi;
+
 done;
 
 exit 0;
