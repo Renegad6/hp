@@ -37,11 +37,12 @@ then
     mkdir -p $LFOLD;
 fi;
 
-if ! test "$1" -eq "-r"
-    rsync $EXTRAPAR -a --exclude '.svn' $USER:$RFOLD $LFOLD;
-else
+if [ "$1" == -r ]
+then
     echo "reverse";
     rsync $EXTRAPAR -a --exclude '.svn' $USER:$LFOLD $RFOLD;
+else
+    rsync $EXTRAPAR -a --exclude '.svn' $USER:$RFOLD $LFOLD;
 fi;
 
 done;
