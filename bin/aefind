@@ -15,5 +15,5 @@ BCKDIR=/usersnfs/$USER/common/backup
 TRZ=~/bckup.trz;
 
 source $(getScriptPath)/common.sh;
-find . -type d \( -path ./work -o -path ./svn \) -prune -o $*
+find . -type d \( -path ./*/TARGETS -o -path ./work -o -path ./svn \) -prune -o $*
 exit 0;
