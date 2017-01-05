@@ -26,26 +26,25 @@ do
     USER=$(echo $record|cut -f1 -d',');
     RFOLD=$(echo $record|cut -f2 -d',');
     LFOLD=$(echo $record|cut -f3 -d',');
-    DEL=$(echo $record|cut -f4 -d',');
-echo "U:$USER,R:$RFOLD,L:$LFOLD:$DEL";
 if ! test -z "$DEL";
 then
     EXTRAPAR=$EXTRAPAR\ --delete;
 fi;
 if [ "$1" == -r ]
 then
-    echo "reverse";
+    echo "U:$USER,R:$LFOLD,L:$RFOLD";
     if ! test -d "$RFOLD"
     then
         mkdir -p $RFOLD;
     fi;
-    rsync $EXTRAPAR -avc --exclude "*/" --exclude '.svn' $USER:$LFOLD $RFOLD;
+    rsync $EXTRAPAR -ac --delete --exclude "*/" --exclude '.svn' $USER:$LFOLD $RFOLD;
 else
+    echo "U:$USER,R:$RFOLD,L:$LFOLD";
     if ! test -d "$LFOLD"
     then
         mkdir -p $LFOLD;
     fi;
-    rsync $EXTRAPAR -avc --exclude "*/" --exclude '.svn' $USER:$RFOLD $LFOLD;
+    rsync $EXTRAPAR -ac --delete --exclude "*/" --exclude '.svn' $USER:$RFOLD $LFOLD;
 fi;
 
 done;
