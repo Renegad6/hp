@@ -32,17 +32,20 @@ if ! test -z "$DEL";
 then
     EXTRAPAR=$EXTRAPAR\ --delete;
 fi;
-if ! test -d "$LFOLD"
-then
-    mkdir -p $LFOLD;
-fi;
-
 if [ "$1" == -r ]
 then
     echo "reverse";
-    rsync $EXTRAPAR -a --exclude '.svn' --rsync-path="mkdir -p $RFOLD && rsync" $USER:$LFOLD $RFOLD;
+    if ! test -d "$RFOLD"
+    then
+        mkdir -p $RFOLD;
+    fi;
+    rsync $EXTRAPAR -avc --exclude "*/" --exclude '.svn' $USER:$LFOLD $RFOLD;
 else
-    rsync $EXTRAPAR -a --exclude '.svn' --rsync-path="mkdir -p $LFOLD && rsync" $USER:$RFOLD $LFOLD;
+    if ! test -d "$LFOLD"
+    then
+        mkdir -p $LFOLD;
+    fi;
+    rsync $EXTRAPAR -avc --exclude "*/" --exclude '.svn' $USER:$RFOLD $LFOLD;
 fi;
 
 done;
