@@ -40,9 +40,9 @@ fi;
 if [ "$1" == -r ]
 then
     echo "reverse";
-    rsync $EXTRAPAR -a --exclude '.svn' $USER:$LFOLD $RFOLD;
+    rsync $EXTRAPAR -a --exclude '.svn' --rsync-path="mkdir -p $RFOLD && rsync" $USER:$LFOLD $RFOLD;
 else
-    rsync $EXTRAPAR -a --exclude '.svn' $USER:$RFOLD $LFOLD;
+    rsync $EXTRAPAR -a --exclude '.svn' --rsync-path="mkdir -p $LFOLD && rsync" $USER:$RFOLD $LFOLD;
 fi;
 
 done;
