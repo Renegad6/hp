@@ -13,10 +13,8 @@ fi;
 SBOX=$1;
 cd /ae
 /ae/_tools/contract/ae_init_sandbox $SBOX > $HOME/compila_$SBOX.trz
-cd /ae/$SBOX
-/ae/_tools/contract/ae_refresh_sandbox >> $HOME/compila_$SBOX.trz
 cd /ae/$SBOX/work
 . $AE_SANDBOX_PATH/work/setup wrl80-haswell-dbg jaguar >> $HOME/compila_$SBOX.trz
-gmake all >> $HOME/compila_$SBOX.trz
+gmake clean all >> $HOME/compila_$SBOX.trz
 
 exit 0;

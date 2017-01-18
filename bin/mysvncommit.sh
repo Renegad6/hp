@@ -15,6 +15,12 @@ then
     exit -1;
 fi;
 
+if [ -z "$AE_SANDBOX_PATH" ]
+then
+    echo "ae_init_sandbox not performed, impossible to detect risks!!!";
+    exit -1;
+fi;
+
 if [ "$AE_SANDBOX_PATH" = "$PWD" ];
 then
     echo "trying commit from REAL!!! sandbox!!";
