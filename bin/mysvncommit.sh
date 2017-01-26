@@ -26,5 +26,5 @@ then
     echo "trying commit from REAL!!! sandbox!!";
     exit -1;
 fi;
-/opt/CollabNet_Subversion/bin/svn commit -m"$1"
+svn commit -m"$1"
 exit 0;
