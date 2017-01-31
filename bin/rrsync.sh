@@ -19,17 +19,20 @@ then
 fi;
 
 
-EXTRAPAR="";
-for record in $(cat rrsync|grep -v "^#");
+LROOT=$(head -3 rrsync|grep "^L:"|cut -f2 -d':');
+RROOT=$(head -3 rrsync|grep "^R:"|cut -f2 -d':');
+USER=$(head -3 rrsync|grep "^U:"|cut -f2 -d':');
+if [ -z "$LROOT" ] || [ -z "$RROOT" ]
+then
+    echo "error in rrsync!!!";
+    exit -1;
+fi;
+for record in $(cat rrsync|grep -v "^#"|grep -v "^[A-Z]:");
 do
 #echo $record
-    USER=$(echo $record|cut -f1 -d',');
-    RFOLD=$(echo $record|cut -f2 -d',');
-    LFOLD=$(echo $record|cut -f3 -d',');
-if ! test -z "$DEL";
-then
-    EXTRAPAR=$EXTRAPAR\ --delete;
-fi;
+    FOLD=$(echo $record);
+    LFOLD="$LROOT$FOLD";
+    RFOLD="$RROOT$FOLD";
 if [ "$1" == -r ]
 then
     echo "U:$USER,R:$LFOLD,L:$RFOLD";
