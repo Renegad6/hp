@@ -8,10 +8,25 @@ getScriptPath () {
   echo ${0%/*}/
 }
 
-BCKDIR=/usersnfs/$USER/common/backup
 TRZ=~/bckup.trz;
-
 source $(getScriptPath)/common.sh;
+
+if test -z "$USER"
+then
+    USBCK=$1;
+else
+    USBCK=$USER;
+fi;
+
+if test -z "$USBCK"
+then
+    echo "user not defined!">>$TRZ;
+    exit -1;
+fi;
+
+echo "backing up for user:"$USBCK>>$TRZ;
+
+BCKDIR=/usersnfs/$USBCK/common/backup
 
 if ! test -d $BCKDIR
 then
@@ -32,8 +47,16 @@ do
     echo "$(date) backing up: "$REPO >> $TRZ;
 # First update trunk or diff wont work!
     git fetch --all >> $TRZ 2>&1;
-# For all local branches
-    BRANCHES=$(git branch|grep -v trunk|awk -F ' +' '! /\(no branch\)/ {print $2}');
+# For all local branches not in origin
+    git branch -r|sort > /tmp/$$remotes;
+    git branch|grep -v trunk|awk -F ' +' '! /\(no branch\)/ {print $2}' | sort > /tmp/$$local;
+    for f in $(cat /tmp/$$local);do
+        grep -w $f /tmp/$$remotes > /tmp/$$tmp;
+        if ! test -s /tmp/$$tmp
+        then
+            BRANCHES=$BRANCHES\ $f;
+        fi;
+    done;
     for BRANCH in $(echo $BRANCHES);
     do
       ORIG=origin/$(git branch -vv|grep $BRANCH|sed -e"s/^.*origin\///"|cut -f1 -d':');
