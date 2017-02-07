@@ -1,4 +1,4 @@
-#!/bin/sh -e
+#!/bin/sh
 # $Header: /usersnfs/deantoni/common/bin/RCS/bckup.sh,v 1.5 2016/08/04 07:34:55 deantoni Exp $
 # A 'repos' file must exist on the backup dir with all repositories to be bcked up
 # in those repos all branches will be backed , they must be tracking remote branches for it to work
@@ -47,25 +47,18 @@ do
     echo "$(date) backing up: "$REPO >> $TRZ;
 # First update trunk or diff wont work!
     git fetch --all >> $TRZ 2>&1;
-# For all local branches not in origin
-    git branch -r|sort > /tmp/$$remotes;
-    git branch|grep -v trunk|awk -F ' +' '! /\(no branch\)/ {print $2}' | sort > /tmp/$$local;
-    for f in $(cat /tmp/$$local);do
-        grep -w $f /tmp/$$remotes > /tmp/$$tmp;
-        if ! test -s /tmp/$$tmp
-        then
-            BRANCHES=$BRANCHES\ $f;
-        fi;
+# Dump diff of current branch against fork point. (WARNING: never leave a remote branch checked out in the repo!!!!) branches to be backed up begin with "my!"
+    BRANCH=$(git branch|grep "^\*"|sed -e"s/^\* *//"|grep "^ *my");
+    if ! test -z "$BRANCH"
+    then
+        ORIG=$(git rev-parse --abbrev-ref --symbolic-full-name @{u});
+        echo "$(date)  ...... backing up: "$BRANCH:$ORIG >> $TRZ;
+        TS=$(timestamp);
+        FILE=$(basename $REPO).$BRANCH.$TS.diff.gz;
+        echo "backing up:"$BRANCH" against:"$ORIG >> $TRZ;
+        git diff $(git merge-base --fork-point $ORIG)..HEAD| gzip -c > $BCKDIR/$FILE;
+    fi;
     done;
-    for BRANCH in $(echo $BRANCHES);
-    do
-      ORIG=origin/$(git branch -vv|grep $BRANCH|sed -e"s/^.*origin\///"|cut -f1 -d':');
-      echo "$(date)  ...... backing up: "$BRANCH:$ORIG >> $TRZ;
-      TS=$(timestamp);
-      FILE=$(basename $REPO).$BRANCH.$TS.diff.gz;
-      git diff $(git merge-base --fork-point $ORIG)..$BRANCH| gzip -c > $BCKDIR/$FILE;
-    done;
-done;
 echo "$(date) end bck" >> $TRZ;
 
 # Dump de svnrep (todos los proyectos)
@@ -74,7 +67,7 @@ for d in $(ls -d /users/deantoni/svnrep/*);
 do
     PRJ=$(basename $d);
     echo "$(date)  ...... backing up: $PRJ " >> $TRZ;
-    (/opt/CollabNet_Subversion/bin/svnadmin dump $d |gzip -c > /usersnfs/deantoni/common/backup/svnrep_$PRJ.dump.gz) > /dev/null 2>&1;
+    (/usr/bin/svnadmin dump $d |gzip -c > /usersnfs/deantoni/common/backup/svnrep_$PRJ.dump.gz) > /dev/null 2>&1;
 done;
 
 exit 0;
