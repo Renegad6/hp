@@ -34,7 +34,7 @@ then
     cat /tmp/check_no_ending_slash;
     exit -1;
 fi;
-exit
+
 for record in $(cat rrsync|grep -v "^#"|grep -v "^[A-Z]:");
 do
 #echo $record
