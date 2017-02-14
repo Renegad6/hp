@@ -1,4 +1,4 @@
-#!/bin/sh -e
+#!/bin/sh 
 # $Header:$
 # sync current folder with remote one (remote -> local).Must have a 'rrsync' file on current folder.
 # Structure: every line:
