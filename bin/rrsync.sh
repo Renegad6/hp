@@ -60,4 +60,10 @@ fi;
 
 done;
 
+svn status |grep "^?"
+if [ $? == 0 ]
+then
+    echo "WARNING: new unversioned files detected.!!!";
+fi;
+
 exit 0;

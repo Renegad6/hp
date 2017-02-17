@@ -6,44 +6,4 @@ getScriptPath () {
 
 source $(getScriptPath)/common.sh;
 
-echo -n "Looking for System's Java ..." ;
-JAVACMD=`which java 2> /dev/null`
-if [ -n "$JAVACMD" ]
-then
-    JAVA_MAJOR=`$JAVACMD -version 2>&1 | grep "java version" | cut -d\" -f2 | cut -d. -f1`
-    JAVA_MINOR=`$JAVACMD -version 2>&1 | grep "java version" | cut -d\" -f2 | cut -d. -f2`
-    if [ $JAVA_MAJOR -ge 1 -a $JAVA_MINOR -ge 6 ]
-    then
-        echo " found version $JAVA_MAJOR.$JAVA_MINOR >= 1.6, using it." ;
-    else
-        echo " found version $JAVA_MAJOR.$JAVA_MINOR < 1.6, can't use it." ;
-        JAVACMD=
-    fi ;
-else
-    echo " not found." ;
-fi
-
-if [ -z "$JAVACMD" ]
-then
-    echo -n "Looking for Atlas Java version ..." ;
-    kernel=`uname -s | tr '[:upper:]' '[:lower:]' ` 
-    machine=`uname -m`
-    release=`uname -r| cut -d '-' -f 1`
-    JAVACMD=/atlas/host/"$kernel-$machine-$release"/java/jre1.6.0_12/bin/java
-    if [ -x "$JAVACMD" ]
-    then
-        echo " found." ;
-    else
-        echo " not found." ;
-        JAVACMD=
-    fi
-fi
-
-if [ -z "$JAVACMD" ]
-then
-    echo "error: couldn't find a suitable java version." ;
-    exit 1 ;
-fi
-
-${JAVACMD} -jar $(getScriptPath)/StatUT.jar $* &
-
+java -jar $(getScriptPath)/StatUT.jar $* &
