@@ -21,6 +21,14 @@ fi;
 
 LROOT=$(head -3 rrsync|grep "^L:"|cut -f2 -d':');
 RROOT=$(head -3 rrsync|grep "^R:"|cut -f2 -d':');
+if [ $LROOT = "AE_SANDBOX_PATH" ]
+then
+    LROOT=$AE_SANDBOX_PATH;
+fi;
+if [ $RROOT = "AE_SANDBOX_PATH" ]
+then
+    RROOT=$AE_SANDBOX_PATH;
+fi;
 USER=$(head -3 rrsync|grep "^U:"|cut -f2 -d':');
 if [ -z "$LROOT" ] || [ -z "$RROOT" ]
 then
@@ -39,8 +47,8 @@ for record in $(cat rrsync|grep -v "^#"|grep -v "^[A-Z]:");
 do
 #echo $record
     FOLD=$(echo $record);
-    LFOLD="$LROOT$FOLD";
-    RFOLD="$RROOT$FOLD";
+    LFOLD="$LROOT"/"$FOLD";
+    RFOLD="$RROOT"/"$FOLD";
 if [ "$1" == -r ]
 then
     echo "U:$USER,R:$LFOLD,L:$RFOLD";
