@@ -17,18 +17,8 @@ fi;
 
 . ${AE_SANDBOX_PATH}/externals/aenv/scripts/loadSetupNew
 
-if test ! -z "$1"
-then
-#set
-    echo $1 > ~/workgingwith.ip;
-    DATA=$(ssh root@$1 grep \"^PrinterConfigurator:.*Framework to boot\" /tmp/printer.log);
-    echo $1:$DATA >> ~/workgingwith.data;
-    echo $DATA;
-    exit 0;
-elif test -f ~/workgingwith.data
-then
+check () {
 #check
-    IP=$(head -1 ~/workgingwith.ip);
     grep $IP ~/workgingwith.data|cut -f2- -d: > /tmp/ww.1;
     (ssh root@$IP grep \"^PrinterConfigurator:.*Framework to boot\" /tmp/printer.log) > /tmp/ww.2;
     cmp /tmp/ww.1 /tmp/ww.2 > /dev/null 2>&1;
@@ -43,7 +33,10 @@ then
         echo "remote:";cat /tmp/ww.2;
         exit -1;
     fi;
+}
+check2 () {
     PRODUCT=$(cat ${PRODUCT_TARGET_ROOT}/configure.product);
+    (ssh root@$IP grep \"^PrinterConfigurator:.*Framework to boot\" /tmp/printer.log) > /tmp/ww.2;
     grep $PRODUCT /tmp/ww.2 > /dev/null 2>&1;
     if test ! $? -eq 0
     then
@@ -56,7 +49,32 @@ then
         echo "remote:";cat /tmp/ww.2;
         exit -1;
     fi;
-    exit 0;
+}
+
+add () {
+    DATA=$(ssh root@$IP grep \"^PrinterConfigurator:.*Framework to boot\" /tmp/printer.log);
+    echo $IP:$DATA >> ~/workgingwith.data;
+    echo $DATA;
+}
+
+if test ! -z "$1"
+then
+    IP=$1;
+    echo $IP > ~/workgingwith.ip;
+    grep $1 ~/workgingwith.data > /dev/null 2>&1;
+    if test $? -eq 0
+    then
+        check;
+        check2;
+    else
+        add;
+        check2;
+    fi;
+elif test -f ~/workgingwith.data
+then
+    IP=$(cat ~/workgingwith.ip);
+    check;
+    check2;
 else
     echo "workgingwith.data, not found! set first!";
     exit -1;
