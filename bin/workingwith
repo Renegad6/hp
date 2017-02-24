@@ -1,4 +1,4 @@
-#!/bin/sh -e
+#!/bin/sh
 # $Header:$
 # check de impresora por cambio de IP.
 #...
@@ -20,15 +20,16 @@ fi;
 if test ! -z "$1"
 then
 #set
-    echo $1 > ~/workgingwith.data;
-    (ssh root@$1 grep \"^PrinterConfigurator:.*Framework to boot\" /tmp/printer.log) >> ~/workgingwith.data;
-    cat ~/workgingwith.data;
+    echo $1 > ~/workgingwith.ip;
+    DATA=$(ssh root@$1 grep \"^PrinterConfigurator:.*Framework to boot\" /tmp/printer.log);
+    echo $1:$DATA >> ~/workgingwith.data;
+    echo $DATA;
     exit 0;
 elif test -f ~/workgingwith.data
 then
 #check
-    IP=$(head -1 ~/workgingwith.data);
-    cat ~/workgingwith.data |tail -1 > /tmp/ww.1;
+    IP=$(head -1 ~/workgingwith.ip);
+    grep $IP ~/workgingwith.data|cut -f2- -d: > /tmp/ww.1;
     (ssh root@$IP grep \"^PrinterConfigurator:.*Framework to boot\" /tmp/printer.log) > /tmp/ww.2;
     cmp /tmp/ww.1 /tmp/ww.2 > /dev/null 2>&1;
     if test ! $? -eq 0
