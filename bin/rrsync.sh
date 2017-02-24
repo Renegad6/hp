@@ -29,13 +29,13 @@ if [ $RROOT = "AE_SANDBOX_PATH" ]
 then
     RROOT=$AE_SANDBOX_PATH;
 fi;
-if [ $LROOT = "PATH" ]
+if [ $LROOT = "PWD" ]
 then
-    LROOT=$PATH;
+    LROOT=$PWD;
 fi;
-if [ $RROOT = "PATH" ]
+if [ $RROOT = "PWD" ]
 then
-    RROOT=$PATH;
+    RROOT=$PWD;
 fi;
 USER=$(head -3 rrsync|grep "^U:"|cut -f2 -d':');
 if [ -z "$LROOT" ] || [ -z "$RROOT" ]

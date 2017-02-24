@@ -1,0 +1,62 @@
+#!/bin/sh -e
+# $Header:$
+# check de impresora por cambio de IP.
+#...
+
+getScriptPath () {
+  echo ${0%/*}/
+}
+
+source $(getScriptPath)/common.sh;
+
+if [ -z "$AE_SANDBOX_PATH" ]
+then
+    echo "ae_init_sandbox not performed, impossible to detect risks!!!";
+    exit -1;
+fi;
+
+. ${AE_SANDBOX_PATH}/externals/aenv/scripts/loadSetupNew
+
+if test ! -z "$1"
+then
+#set
+    echo $1 > ~/workgingwith.data;
+    (ssh root@$1 grep \"^PrinterConfigurator:.*Framework to boot\" /tmp/printer.log) >> ~/workgingwith.data;
+    cat ~/workgingwith.data;
+    exit 0;
+elif test -f ~/workgingwith.data
+then
+#check
+    IP=$(head -1 ~/workgingwith.data);
+    cat ~/workgingwith.data |tail -1 > /tmp/ww.1;
+    (ssh root@$IP grep \"^PrinterConfigurator:.*Framework to boot\" /tmp/printer.log) > /tmp/ww.2;
+    cmp /tmp/ww.1 /tmp/ww.2 > /dev/null 2>&1;
+    if test ! $? -eq 0
+    then
+        echo "WORKINGWITH CHECK1 failed!!!!!!!";
+        echo "WORKINGWITH CHECK1 failed!!!!!!!";
+        echo "WORKINGWITH CHECK1 failed!!!!!!!";
+        echo "WORKINGWITH CHECK1 failed!!!!!!!";
+        echo "WORKINGWITH CHECK1 failed!!!!!!!";
+        echo "local:";cat /tmp/ww.1;
+        echo "remote:";cat /tmp/ww.2;
+        exit -1;
+    fi;
+    PRODUCT=$(cat ${PRODUCT_TARGET_ROOT}/configure.product);
+    grep $PRODUCT /tmp/ww.2 > /dev/null 2>&1;
+    if test ! $? -eq 0
+    then
+        echo "WORKINGWITH CHECK2 failed!!!!!!!";
+        echo "WORKINGWITH CHECK2 failed!!!!!!!";
+        echo "WORKINGWITH CHECK2 failed!!!!!!!";
+        echo "WORKINGWITH CHECK2 failed!!!!!!!";
+        echo "WORKINGWITH CHECK2 failed!!!!!!!";
+        echo "product:";echo $PRODUCT;
+        echo "remote:";cat /tmp/ww.2;
+        exit -1;
+    fi;
+    exit 0;
+else
+    echo "workgingwith.data, not found! set first!";
+    exit -1;
+fi;
