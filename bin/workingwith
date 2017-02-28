@@ -67,6 +67,7 @@ if test "$1" = "-r"
 then
     IP=$(cat ~/workingwith.ip);
     reset;
+    add;
 elif test ! -z "$1"
 then
     IP=$1;
