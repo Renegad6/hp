@@ -17,9 +17,15 @@ fi;
 
 . ${AE_SANDBOX_PATH}/externals/aenv/scripts/loadSetupNew
 
+reset () {
+#reset 
+    grep -v $IP ~/workingwith.data > /tmp/workingwith.data.new;
+    mv /tmp/workingwith.data.new ~/workingwith.data;
+}
+
 check () {
 #check
-    grep $IP ~/workgingwith.data|cut -f2- -d: > /tmp/ww.1;
+    grep $IP ~/workingwith.data|cut -f2- -d: > /tmp/ww.1;
     (ssh root@$IP grep \"^PrinterConfigurator:.*Framework to boot\" /tmp/printer.log) > /tmp/ww.2;
     cmp /tmp/ww.1 /tmp/ww.2 > /dev/null 2>&1;
     if test ! $? -eq 0
@@ -53,15 +59,19 @@ check2 () {
 
 add () {
     DATA=$(ssh root@$IP grep \"^PrinterConfigurator:.*Framework to boot\" /tmp/printer.log);
-    echo $IP:$DATA >> ~/workgingwith.data;
+    echo $IP:$DATA >> ~/workingwith.data;
     echo $DATA;
 }
 
-if test ! -z "$1"
+if test "$1" = "-r"
+then
+    IP=$(cat ~/workingwith.ip);
+    reset;
+elif test ! -z "$1"
 then
     IP=$1;
-    echo $IP > ~/workgingwith.ip;
-    grep $1 ~/workgingwith.data > /dev/null 2>&1;
+    echo $IP > ~/workingwith.ip;
+    grep $1 ~/workingwith.data > /dev/null 2>&1;
     if test $? -eq 0
     then
         check;
@@ -70,12 +80,12 @@ then
         add;
         check2;
     fi;
-elif test -f ~/workgingwith.data
+elif test -f ~/workingwith.data
 then
-    IP=$(cat ~/workgingwith.ip);
+    IP=$(cat ~/workingwith.ip);
     check;
     check2;
 else
-    echo "workgingwith.data, not found! set first!";
+    echo "workingwith.data, not found! set first!";
     exit -1;
 fi;
