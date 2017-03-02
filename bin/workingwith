@@ -19,6 +19,7 @@ fi;
 
 reset () {
 #reset 
+    echo "IP:" $IP;
     grep -v $IP ~/workingwith.data > /tmp/workingwith.data.new;
     mv /tmp/workingwith.data.new ~/workingwith.data;
 }
