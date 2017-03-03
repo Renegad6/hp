@@ -27,7 +27,7 @@ reset () {
 check () {
 #check
     grep $IP ~/workingwith.data|cut -f2- -d: > /tmp/ww.1;
-    (ssh root@$IP grep \"^PrinterConfigurator:.*Framework to boot\" /tmp/printer.log) > /tmp/ww.2;
+    (ssh root@$IP grep \"^PrinterConfigurator:.*Framework to boot\" /tmp/printer.log|sed -e"s/\[[0-9]:. -]*\]//") > /tmp/ww.2;
     cmp /tmp/ww.1 /tmp/ww.2 > /dev/null 2>&1;
     if test ! $? -eq 0
     then
@@ -43,7 +43,7 @@ check () {
 }
 check2 () {
     PRODUCT=$(cat ${PRODUCT_TARGET_ROOT}/configure.product);
-    (ssh root@$IP grep \"^PrinterConfigurator:.*Framework to boot\" /tmp/printer.log) > /tmp/ww.2;
+    (ssh root@$IP grep \"^PrinterConfigurator:.*Framework to boot\" /tmp/printer.log|sed -e"s/\[[0-9]:. -]*\]//") > /tmp/ww.2;
     grep $PRODUCT /tmp/ww.2 > /dev/null 2>&1;
     if test ! $? -eq 0
     then
@@ -59,7 +59,7 @@ check2 () {
 }
 
 add () {
-    DATA=$(ssh root@$IP grep \"^PrinterConfigurator:.*Framework to boot\" /tmp/printer.log);
+    DATA=$(ssh root@$IP grep \"^PrinterConfigurator:.*Framework to boot\" /tmp/printer.log|sed -e"s/\[[0-9]:. -]*\]//");
     echo $IP:$DATA >> ~/workingwith.data;
     echo $DATA;
 }
