@@ -66,7 +66,7 @@ add () {
 
 if test "$1" = "-r"
 then
-    IP=$(cat ~/workingwith.ip);
+    IP=$(cat ~/workingwith.ip);echo $IP;
     reset;
     add;
 elif test ! -z "$1"
@@ -82,12 +82,12 @@ then
         add;
         check2;
     fi;
-elif test -f ~/workingwith.data
+elif test -f ~/workingwith.ip
 then
-    IP=$(cat ~/workingwith.ip);
+    IP=$(cat ~/workingwith.ip);echo $IP;
     check;
     check2;
 else
-    echo "workingwith.data, not found! set first!";
+    echo "workingwith.ip, not found! set first!";
     exit -1;
 fi;
