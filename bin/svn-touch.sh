@@ -1,1 +1,1 @@
-svn status|grep "^M"| cut -f2- -d" "|xargs touch 
+svn status|grep "^[M|A]"| cut -f2- -d" "|xargs touch 

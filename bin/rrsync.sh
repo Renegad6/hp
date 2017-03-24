@@ -12,15 +12,15 @@ getScriptPath () {
 
 source $(getScriptPath)/common.sh;
 
-if ! test -f rrsync
+if ! test -f ign.rrsync
 then
-    echo "'rrsync' file does not exist!";
+    echo "'ign.rrsync' file does not exist!";
     exit -1;
 fi;
 
 
-LROOT=$(head -3 rrsync|grep "^L:"|cut -f2 -d':');
-RROOT=$(head -3 rrsync|grep "^R:"|cut -f2 -d':');
+LROOT=$(head -3 ign.rrsync|grep "^L:"|cut -f2 -d':');
+RROOT=$(head -3 ign.rrsync|grep "^R:"|cut -f2 -d':');
 if [ $LROOT = "AE_SANDBOX_PATH" ]
 then
     LROOT=$AE_SANDBOX_PATH;
@@ -37,13 +37,13 @@ if [ $RROOT = "PWD" ]
 then
     RROOT=$PWD;
 fi;
-USER=$(head -3 rrsync|grep "^U:"|cut -f2 -d':');
+USER=$(head -3 ign.rrsync|grep "^U:"|cut -f2 -d':');
 if [ -z "$LROOT" ] || [ -z "$RROOT" ]
 then
-    echo "error in rrsync!!!";
+    echo "error in ign.rrsync!!!";
     exit -1;
 fi;
-cat rrsync|grep -v "^#"|grep -v "^[A-Z]:"|grep "[^/]$" > /tmp/check_no_ending_slash;
+cat ign.rrsync|grep -v "^#"|grep -v "^[A-Z]:"|grep "[^/]$" > /tmp/check_no_ending_slash;
 if [ -s /tmp/check_no_ending_slash ]
 then
     echo "paths not ending with / found!";
@@ -51,7 +51,7 @@ then
     exit -1;
 fi;
 
-for record in $(cat rrsync|grep -v "^#"|grep -v "^[A-Z]:");
+for record in $(cat ign.rrsync|grep -v "^#"|grep -v "^[A-Z]:");
 do
 #echo $record
     FOLD=$(echo $record);
