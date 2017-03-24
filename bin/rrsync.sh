@@ -76,7 +76,7 @@ fi;
 
 done;
 
-svn status |grep "^?"
+svn status |grep -v "ign\."|grep "^?"
 if [ $? == 0 ]
 then
     echo "WARNING: new unversioned files detected.!!!";
