@@ -1,0 +1,45 @@
+#!/bin/sh -e
+# $Header:$
+# stash de svn diffs
+#...
+
+getScriptPath () {
+  echo ${0%/*}/
+}
+
+source $(getScriptPath)/common.sh;
+
+if test -z "$1";
+then
+    echo "No comments!!";
+    exit -1;
+fi;
+
+COMMENTS=$1;
+
+if [ -z "$AE_SANDBOX_PATH" ]
+then
+    echo "ae_init_sandbox not performed, impossible to detect risks!!!";
+    exit -1;
+fi;
+
+STSDIR=/usersnfs/$USER/common/stash
+
+if ! test -d $STSDIR
+then
+    echo "$STSDIR does not exist!";
+    exit -1;
+fi;
+
+cd $AE_SANDBOX_PATH;
+TS=$(timestamp);
+
+rm -f /tmp/$$stashadd;
+echo "stash.comments:"$COMMENTS >> /tmp/$$stashadd;
+svn info >> /tmp/$$stashadd;
+svn diff --internal-diff >> /tmp/$$stashadd;
+
+sed -e "s/^/$TS:/" /tmp/$$stashadd >> $STSDIR/stash;
+
+echo "stash created for $TS-$AE_SANDBOX_PATH"
+exit 0;
