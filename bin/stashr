@@ -43,7 +43,9 @@ then
 fi;
 
 REVISION=`svn info  |grep '^Revision:' | sed -e 's/^Revision: //'`;
-REVISION2=`grep stash.base.revision /tmp/$$stashrec|head -1|cut -f3 -d:`;
+REVISION2=`grep stash.base.revision /tmp/$$stashrec|head -1|cut -f3- -d:`;
+URL=`svn info  |grep '^URL:' | sed -e 's/^URL: //'`;
+URL2=`grep stash.URL /tmp/$$stashrec|head -1|cut -f3- -d:`;
 
 if [ "$REVISION" != "$REVISION2" ]
 then
@@ -51,8 +53,16 @@ then
     exit -1;
 fi;
 
-tail -n +3 /tmp/$$stashrec|cut -f2 -d: > /tmp/$$stashrec2;
+if [ "$URL" != "$URL2" ]
+then
+    echo "URL mismatch!(sb:$URL vs. stash:$URL2)";
+    exit -1;
+fi;
+
+
+tail -n +4 /tmp/$$stashrec|cut -f2- -d: > /tmp/$$stashrec2;
 
 svn patch /tmp/$$stashrec2;
+#cat /tmp/$$stashrec2
 
 exit 0;

@@ -37,7 +37,9 @@ TS=$(timestamp);
 rm -f /tmp/$$stashadd;
 echo "stash.comments:"$COMMENTS >> /tmp/$$stashadd;
 REVISION=`svn info  |grep '^Revision:' | sed -e 's/^Revision: //'`
+URL=`svn info  |grep '^URL:' | sed -e 's/^URL: //'`
 echo "stash.base.revision:"$REVISION >> /tmp/$$stashadd;
+echo "stash.URL:"$URL >> /tmp/$$stashadd;
 svn diff --internal-diff >> /tmp/$$stashadd;
 
 sed -e "s/^/$TS:/" /tmp/$$stashadd >> $STSDIR/stash;
