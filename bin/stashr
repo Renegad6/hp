@@ -1,0 +1,58 @@
+#!/bin/sh 
+# $Header:$
+# stash de svn diffs
+#...
+
+getScriptPath () {
+  echo ${0%/*}/
+}
+
+source $(getScriptPath)/common.sh;
+
+if test -z "$1";
+then
+    echo "No TS id!!";
+    exit -1;
+fi;
+
+TS=$1;
+
+if [ -z "$AE_SANDBOX_PATH" ]
+then
+    echo "ae_init_sandbox not performed, impossible to detect risks!!!";
+    exit -1;
+fi;
+
+STSDIR=/usersnfs/$USER/common/stash
+
+if ! test -d $STSDIR
+then
+    echo "$STSDIR does not exist!";
+    exit -1;
+fi;
+
+cd $AE_SANDBOX_PATH;
+
+rm -f /tmp/$$stashrec;
+grep $TS $STSDIR/stash > /tmp/$$stashrec
+
+if [ ! -s /tmp/$$stashrec ]
+then
+    echo "couldn't be recovered, check TS";
+    exit -1;
+fi;
+
+REVISION=`svn info  |grep '^Revision:' | sed -e 's/^Revision: //'`;
+REVISION2=`grep stash.base.revision /tmp/$$stashrec|head -1|cut -f3 -d:`;
+
+if [ "$REVISION" != "$REVISION2" ]
+then
+    echo "base revision mismatch!($REVISION vs. $REVISION2)";
+    exit -1;
+fi;
+
+tail -n +3 /tmp/$$stashrec|cut -f2 -d: > /tmp/$$stashrec2;
+
+svn patch /tmp/$$stashrec2;
+
+exit 0;
