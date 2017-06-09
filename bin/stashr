@@ -47,7 +47,7 @@ REVISION2=`grep stash.base.revision /tmp/$$stashrec|head -1|cut -f3 -d:`;
 
 if [ "$REVISION" != "$REVISION2" ]
 then
-    echo "base revision mismatch!($REVISION vs. $REVISION2)";
+    echo "base revision mismatch!(sb:$REVISION vs. stash:$REVISION2)";
     exit -1;
 fi;
 
