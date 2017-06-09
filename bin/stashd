@@ -1,0 +1,36 @@
+#!/bin/sh -e
+# $Header:$
+# stash de svn diffs
+#...
+
+getScriptPath () {
+  echo ${0%/*}/
+}
+
+source $(getScriptPath)/common.sh;
+if [ -z "$AE_SANDBOX_PATH" ]
+then
+    echo "ae_init_sandbox not performed, impossible to detect risks!!!";
+    exit -1;
+fi;
+
+if test -z "$1";
+then
+    echo "No TS id!!";
+    exit -1;
+fi;
+
+TS=$1;
+
+STSDIR=/usersnfs/$USER/common/stash
+
+if ! test -d $STSDIR
+then
+    echo "$STSDIR does not exist!";
+    exit -1;
+fi;
+
+grep -v "^$TS:" $STSDIR/stash > /tmp/$$stashdel;
+mv /tmp/$$stashdel $STSDIR/stash;
+
+exit 0;
