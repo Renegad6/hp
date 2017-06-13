@@ -15,6 +15,12 @@ then
     exit -1;
 fi;
 
+FORCE=0;
+if [ "$2" == "-f" ]
+then
+    FORCE=1;
+fi;
+
 TS=$1;
 
 if [ -z "$AE_SANDBOX_PATH" ]
@@ -50,13 +56,19 @@ URL2=`grep stash.URL /tmp/$$stashrec|head -1|cut -f3- -d:`;
 if [ "$REVISION" != "$REVISION2" ]
 then
     echo "base revision mismatch!(sb:$REVISION vs. stash:$REVISION2)";
-    exit -1;
+    if [ $FORCE -eq 0 ]
+    then
+        exit -1;
+    fi;
 fi;
 
 if [ "$URL" != "$URL2" ]
 then
     echo "URL mismatch!(sb:$URL vs. stash:$URL2)";
-    exit -1;
+    if [ $FORCE -eq 0 ]
+    then
+        exit -1;
+    fi;
 fi;
 
 
