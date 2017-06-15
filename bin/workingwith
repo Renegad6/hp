@@ -58,6 +58,50 @@ check2 () {
     fi;
 }
 
+check3 () {
+    (ssh root@$IP lsusb|grep -v root ) > /tmp/ww.2;
+    if test -s /tmp/ww.2
+    then
+        echo "WORKINGWITH CHECK3 failed!!!!!!!";
+        echo "WORKINGWITH CHECK3 failed!!!!!!!";
+        echo "WORKINGWITH CHECK3 failed!!!!!!!";
+        echo "WORKINGWITH CHECK3 failed!!!!!!!";
+        echo "WORKINGWITH CHECK3 failed!!!!!!!";
+        echo "USB dongle seems to be connected to the printer";
+        cat /tmp/ww.2;
+        exit -1;
+    fi;
+}
+
+check4 () {
+    CUANTOS=$(ssh root@$IP who|wc -l);
+    if test $CUANTOS -gt 0
+    then
+        echo "WORKINGWITH CHECK4 failed!!!!!!!";
+        echo "WORKINGWITH CHECK4 failed!!!!!!!";
+        echo "WORKINGWITH CHECK4 failed!!!!!!!";
+        echo "WORKINGWITH CHECK4 failed!!!!!!!";
+        echo "WORKINGWITH CHECK4 failed!!!!!!!";
+        echo "someone seems to be logged in to the printer";
+        exit -1;
+    fi;
+}
+
+check5 () {
+    (ssh root@$IP ps -efa|egrep scp\|rsync|grep -v grep) > /tmp/ww.2;
+    if test -s /tmp/ww.2
+    then
+        echo "WORKINGWITH CHECK5 failed!!!!!!!";
+        echo "WORKINGWITH CHECK5 failed!!!!!!!";
+        echo "WORKINGWITH CHECK5 failed!!!!!!!";
+        echo "WORKINGWITH CHECK5 failed!!!!!!!";
+        echo "WORKINGWITH CHECK5 failed!!!!!!!";
+        echo "someone seems to be transfering data to the printer";
+        cat /tmp/ww.2;
+        exit -1;
+    fi;
+}
+
 add () {
     DATA=$(ssh root@$IP grep \"^PrinterConfigurator:.*Framework to boot\" /tmp/printer.log|sed -e"s/\[[0-9:. -]*\]//"|sed -e"s/  */ /g");
     echo $IP:$DATA >> ~/workingwith.data;
@@ -74,6 +118,9 @@ then
     IP=$1;
     echo $IP > ~/workingwith.ip;
     grep $1 ~/workingwith.data > /dev/null 2>&1;
+    check3
+    check4
+    check5
     if test $? -eq 0
     then
         check;
@@ -85,6 +132,9 @@ then
 elif test -f ~/workingwith.ip
 then
     IP=$(cat ~/workingwith.ip);echo $IP;
+    check3
+    check4
+    check5
     check;
     check2;
 else
