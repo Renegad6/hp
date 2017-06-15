@@ -31,8 +31,6 @@ then
     exit -1;
 fi;
 
-cd $AE_SANDBOX_PATH;
-
 rm -f /tmp/$$stashrec;
 grep $TS $STSDIR/stash > /tmp/$$stashrec
 
