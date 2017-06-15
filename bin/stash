@@ -31,7 +31,12 @@ then
     exit -1;
 fi;
 
-cd $AE_SANDBOX_PATH;
+if ! test -d .svn
+then
+    echo NO .svn here!!!;
+    exit -1;
+fi;
+
 TS=$(timestamp);
 
 rm -f /tmp/$$stashadd;
