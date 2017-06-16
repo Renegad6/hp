@@ -59,7 +59,7 @@ check2 () {
 }
 
 check3 () {
-    (ssh root@$IP lsusb|grep -v root ) > /tmp/ww.2;
+    (ssh root@$IP lsusb|grep -v root|grep -v VMware ) > /tmp/ww.2;
     if test -s /tmp/ww.2
     then
         echo "WORKINGWITH CHECK3 failed!!!!!!!";
