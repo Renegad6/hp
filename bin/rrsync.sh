@@ -11,16 +11,16 @@ getScriptPath () {
 }
 
 source $(getScriptPath)/common.sh;
-
-if ! test -f ign.rrsync
+RRSYNC=$MYSBOX/ign.rrsync;
+if ! test -f $RRSYNC
 then
-    echo "'ign.rrsync' file does not exist!";
+    echo "'$RRSYNC' file does not exist!";
     exit -1;
 fi;
 
 
-LROOT=$(head -3 ign.rrsync|grep "^L:"|cut -f2 -d':');
-RROOT=$(head -3 ign.rrsync|grep "^R:"|cut -f2 -d':');
+LROOT=$(head -3 $RRSYNC|grep "^L:"|cut -f2 -d':');
+RROOT=$(head -3 $RRSYNC|grep "^R:"|cut -f2 -d':');
 if [ $LROOT = "AE_SANDBOX_PATH" ]
 then
     LROOT=$AE_SANDBOX_PATH;
@@ -37,13 +37,13 @@ if [ $RROOT = "PWD" ]
 then
     RROOT=$PWD;
 fi;
-USER=$(head -3 ign.rrsync|grep "^U:"|cut -f2 -d':');
+USER=$(head -3 $RRSYNC|grep "^U:"|cut -f2 -d':');
 if [ -z "$LROOT" ] || [ -z "$RROOT" ]
 then
-    echo "error in ign.rrsync!!!";
+    echo "error in $RRSYNC!!!";
     exit -1;
 fi;
-cat ign.rrsync|grep -v "^#"|grep -v "^[A-Z]:"|grep "[^/]$" > /tmp/check_no_ending_slash;
+cat $RRSYNC|grep -v "^#"|grep -v "^[A-Z]:"|grep "[^/]$" > /tmp/check_no_ending_slash;
 if [ -s /tmp/check_no_ending_slash ]
 then
     echo "paths not ending with / found!";
@@ -51,7 +51,7 @@ then
     exit -1;
 fi;
 
-for record in $(cat ign.rrsync|grep -v "^#"|grep -v "^[A-Z]:");
+for record in $(cat $RRSYNC|grep -v "^#"|grep -v "^[A-Z]:");
 do
 #echo $record
     FOLD=$(echo $record);
@@ -76,10 +76,12 @@ fi;
 
 done;
 
+cd $MYSBOX;
 svn status |grep -v "ign\."|grep "^?"
 if [ $? == 0 ]
 then
-    echo "WARNING: new unversioned files detected.!!!";
+    echo "WARNING: new unversioned files detected in $MYSBOX.!!!";
 fi;
+cd -;
 
 exit 0;
