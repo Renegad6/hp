@@ -11,7 +11,12 @@ getScriptPath () {
 }
 
 source $(getScriptPath)/common.sh;
-RRSYNC=$MYSBOX/ign.rrsync;
+if test -z "$1"
+then
+    RRSYNC=$MYSBOX/ign.rrsync;
+else
+    RRSYNC=$1/ign.rrsync;
+fi;
 if ! test -f $RRSYNC
 then
     echo "'$RRSYNC' file does not exist!";
@@ -76,11 +81,11 @@ fi;
 
 done;
 
-cd $MYSBOX;
+cd $(dirname $RRSYNC);
 svn status |grep -v "ign\."|grep "^?"
 if [ $? == 0 ]
 then
-    echo "WARNING: new unversioned files detected in $MYSBOX.!!!";
+    echo "WARNING: new unversioned files detected in $(dirname $RRSYNC).!!!";
 fi;
 cd -;
 
