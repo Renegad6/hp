@@ -49,5 +49,5 @@ svn diff --internal-diff >> /tmp/$$stashadd;
 
 sed -e "s/^/$TS:/" /tmp/$$stashadd >> $STSDIR/stash;
 
-echo "stash created for $TS-$AE_SANDBOX_PATH"
+echo "stash created for $TS-$URL"
 exit 0;
