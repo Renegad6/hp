@@ -115,6 +115,12 @@ then
     add;
 elif test ! -z "$1"
 then
+#Can i leave?
+    if test -f ~/workingwith.ip
+    then
+        IP=$(cat ~/workingwith.ip);echo $IP;
+        canileave $IP;
+    fi;
     IP=$1;
     echo $IP > ~/workingwith.ip;
     grep $1 ~/workingwith.data > /dev/null 2>&1;

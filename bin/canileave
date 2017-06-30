@@ -1,0 +1,73 @@
+#!/bin/sh
+# $Header:$
+# check de impresora por cambio de IP.
+#...
+
+getScriptPath () {
+  echo ${0%/*}/
+}
+
+source $(getScriptPath)/common.sh;
+
+if [ -z "$AE_SANDBOX_PATH" ]
+then
+    echo "ae_init_sandbox not performed, impossible to detect risks!!!";
+    exit -1;
+fi;
+
+check () {
+# se deja la printer en modo printer
+    bootmode=$(ssh root@$IP cat /permanent/product/bootmode.fixed)
+    if test ! $bootmode == "printer"
+    then
+        echo "CANILEAVE CHECK1 failed!!!!!!!";
+        echo "CANILEAVE CHECK1 failed!!!!!!!";
+        echo "CANILEAVE CHECK1 failed!!!!!!!";
+        echo "CANILEAVE CHECK1 failed!!!!!!!";
+        echo "CANILEAVE CHECK1 failed!!!!!!!";
+        echo "remote(bootmode):"$bootmode
+        exit -1;
+    fi;
+}
+
+check2 () {
+# se deja setup override?
+    override=$(ssh root@$IP cat /permanent/product/debugOverride.fixed)
+    if test ! $override == "debug"
+    then
+        echo "CANILEAVE CHECK2 failed!!!!!!!";
+        echo "CANILEAVE CHECK2 failed!!!!!!!";
+        echo "CANILEAVE CHECK2 failed!!!!!!!";
+        echo "CANILEAVE CHECK2 failed!!!!!!!";
+        echo "CANILEAVE CHECK2 failed!!!!!!!";
+        echo "remote(override):"$override
+        exit -1;
+    fi;
+}
+
+check3 () {
+# se deja SEVERE?
+    severe=$(ssh root@$IP grep SEVERE /tmp/printer.log|wc -l)
+    if test ! $severe -eq 0
+    then
+        echo "CANILEAVE CHECK3 failed!!!!!!!";
+        echo "CANILEAVE CHECK3 failed!!!!!!!";
+        echo "CANILEAVE CHECK3 failed!!!!!!!";
+        echo "CANILEAVE CHECK3 failed!!!!!!!";
+        echo "CANILEAVE CHECK3 failed!!!!!!!";
+        echo "remote(severe):"$severe
+        exit -1;
+    fi;
+}
+
+if test ! -z "$1"
+then
+    IP=$1;
+else
+    IP=$(cat ~/workingwith.ip);echo $IP;
+fi;
+
+echo IP=$IP
+check;
+check2;
+check3;
