@@ -1,0 +1,1128 @@
+# created with TclSqueak
+# script require component IDETclParser
+package provide IDETclToHtml 0.1
+package require IDETclParser
+package require XOTcl
+catch {namespace import xotcl::*}
+Class create PrsMarkupVisitor
+@ PrsMarkupVisitor idemeta categories api
+@ PrsMarkupVisitor idemeta categoriesMethods {{generateIndexAll generateSignatures generateBackReferences generateABCIndex collectMarkups initNewFile generateFrontFile}}
+@ PrsMarkupVisitor idemeta component IDETclToHtml
+PrsMarkupVisitor instproc addDef elem {
+    my instvar definitions fileName definitionsKey currentDefs varLocalDefinitions
+    set def [$elem set def]
+    set varLocalDefinitions [list]
+    lappend currentDefs $def
+    if {$def ni $definitionsKey} {
+        lappend definitions [list $def [$elem set begin] $fileName]
+        lappend definitionsKey $def
+    }
+}
+PrsMarkupVisitor instproc addGlobalRefs {elem ref} {
+    my instvar globalRefsArr fileName definitionsKey definitions packageRefs
+    if {[lindex $ref 0] eq "package"} {
+        set packageName [lindex $ref 1]
+        if {[catch {set packageRefs($fileName)} reqPackages]} {
+            lappend packageRefs($fileName) $packageName
+        } else {
+            if {$packageName ni $reqPackages} {
+                lappend packageRefs($fileName) $packageName
+            }
+        }
+    }
+
+    set r [lsearch $definitionsKey $ref]
+    if {$r<0} {
+        return
+    }
+    #puts "adding $ref - $r"
+    set defElem $elem
+    while {[Object isobject $defElem] && [$defElem hasclass PrsElement] && ![$defElem exists def]} {
+        set defElem [$defElem info parent]
+    }
+    if {[Object isobject $defElem] && [$defElem exists def]} {
+        set d [$defElem set def]
+        # ignore if method definition of same object
+        if {[lindex $ref 0] eq "object" && [lindex $d 0] eq "method" && [lindex $ref 1] eq [lindex $d 1 0]} {
+            return
+        }
+        set bref [list $d]
+    } else {
+        # ignore if same file
+        set linkSourceFileName [lindex $definitions $r 2]
+        if {$linkSourceFileName eq $fileName} {
+            return
+        }
+        set bref [list $fileName [my fileToHtmlFile $fileName]]
+    }
+    #puts "adding2 $bref to $ref"
+    if {[catch {set globalRefsArr($ref)} brefs]} {
+        set globalRefsArr($ref) [list $bref]
+    } else {
+        if {$bref ni $brefs} {
+            lappend globalRefsArr($ref) $bref
+        }
+    }
+}
+PrsMarkupVisitor instproc addNavigation {out {linksHtml {}}} {
+    $out puts "<nav>$linksHtml"
+    set outFileName [file tail [$out set fileName]]
+    set navDef {
+        front.html {Files Overview}
+        index-all.html {ABC Index}
+        classes.html {Class Tree}
+        packages.html {Packages}
+    }
+    foreach {file name} $navDef {
+        if {$outFileName ne $file} {
+            $out puts "<a href=\"[$out getRootReference $file]\">$name</a> "
+        } else {
+            $out puts $name
+        }
+    }
+    $out puts {<a id="errorRef" href="#?">Errors</a>}
+    $out puts {</nav>}
+}
+PrsMarkupVisitor instproc addRef elem {
+    my instvar currentRefs
+    set ref [$elem set ref]
+    set refDesc [list $ref [$elem set begin] [$elem set end]]
+    if {[$elem exists desc]} {
+        lappend refDesc [$elem set desc]
+    }
+    lappend currentRefs $refDesc
+    my addGlobalRefs $elem $ref
+}
+PrsMarkupVisitor instproc collectErrors {} {
+    my instvar context markups errors fileName errorIndex
+    foreach err [$context set errors] {
+        lassign $err begin end message
+        lappend markups [list $begin $end error $message $errorIndex]
+        lappend errors [list $fileName $message]
+        incr errorIndex
+    }
+}
+PrsMarkupVisitor instproc collectMarkups {tcontext tfileName} {
+    my instvar markups fileName refCount currentDefs currentRefs context varLocalDefinitions files
+    set markups [list]
+    set currentDefs [list]
+    set currentRefs [list]
+    set context $tcontext
+    set refCount 0
+    set fileName $tfileName
+    lappend files $tfileName
+    set varLocalDefinitions [list]
+    [$context set rootCommand] visit [self]
+    my collectErrors
+}
+PrsMarkupVisitor instproc fileToHtmlFile fileName {
+    return [file rootname $fileName].html
+}
+PrsMarkupVisitor instproc fileToRelativeHtmlFile {out fileName} {
+    return [file rootname [$out getRelativeReference $fileName]].html
+}
+PrsMarkupVisitor instproc generateABCIndex indexOut {
+    my instvar definitions
+    my addNavigation $indexOut
+    $indexOut puts "<h1>All symbols in alphabetical order</h1>"
+    set indexAll [list]
+    set r 0
+    foreach d $definitions {
+        set type [lindex $d 0 0]
+        if {$type eq "proc"} {
+            set name [namespace tail [lindex $d 0 1]]
+        } elseif {$type eq "method"} {
+            set name [lindex $d 0 1 2]
+        } elseif {$type eq "object"} {
+            set name [namespace tail [lindex $d 0 1]]
+        } else {
+            set name [namespace tail [lindex $d 0 1]]
+        }
+        lappend indexAll [list $name $d $r]
+        incr r
+    }
+    set firstChar ""
+    foreach elem [lsort -index 0 -nocase $indexAll] {
+        lassign $elem name d r
+        set currFistChar [string toupper [string index $name 0]]
+        if {$currFistChar ne $firstChar} {
+            set firstChar $currFistChar
+            $indexOut puts "<hr><h2>$firstChar</h2>"
+        }
+        set type [lindex $d 0 0]
+        set defFileName [lindex $d 2]
+        set htmlFile [my fileToHtmlFile $defFileName]
+        $indexOut puts "<li><a href=\"$htmlFile#r$r\">$name</a> $type"
+
+        if {$type eq "proc"} {
+            set fullName [lindex $d 0 1]
+            if {[string first : $fullName 2]>0} {
+                $indexOut puts " $fullName"
+            }
+        } elseif {$type eq "method"} {
+            lassign [lindex $d 0 1] class mtype method
+            $indexOut puts " $class $mtype"
+        }
+        $indexOut puts {</li>}
+    }
+}
+PrsMarkupVisitor instproc generateBackReferences fileOut {
+    my instvar currentDefs definitionsKey definitions globalRefsArr fileName
+    $fileOut puts {<script class="include" type="text/javascript">
+var tclHtmlBackRererences = [}
+    set first 1
+    set r 0
+    foreach def $definitions {
+        lassign $def d begin defFileName
+        if {$defFileName eq $fileName} {
+            if {![catch {set globalRefsArr($d)} brefs]} {
+                if {!$first} {
+                    $fileOut putsNonewline ,
+                } else {
+                    set first 0
+                }
+                $fileOut putsNonewline "\[\"r$r\",\["
+                set rFirst 1
+                foreach bref $brefs {
+                    if {!$rFirst} {
+                        $fileOut putsNonewline ,
+                    } else {
+                        set rFirst 0
+                    }
+                    if {[llength $bref]==1} {
+                        set rdef [lindex $bref 0]
+                        set rdefHumman [my methodDefToHuman $rdef]
+                        set rr [lsearch $definitionsKey $rdef]
+                        if {$rr<0} {
+                            puts "definition not found $rdef"
+                            continue
+                        }
+                        set linkSourceFileName [lindex $definitions $rr 2]
+                        if {$linkSourceFileName eq $fileName} {
+                            set rFileName ""
+                        } else {
+                            set rFileName [my fileToRelativeHtmlFile $fileOut $linkSourceFileName]
+                            set rdefHumman "$linkSourceFileName: $rdefHumman"
+                        }
+                    } else {
+                        lassign $bref rdef rFileName rr
+                        set rdefHumman [my methodDefToHuman $rdef]
+                        set rFileName [my fileToRelativeHtmlFile $fileOut $rFileName]
+                    }
+                    if {$rFileName eq ""} {
+                        $fileOut putsNonewline "\[\"#r$rr\","
+                    } else {
+                        if {$rr ne ""} {
+                            $fileOut putsNonewline "\[\"$rFileName#r$rr\","
+                        } else {
+                            $fileOut putsNonewline "\[\"$rFileName\","
+                        }
+                    }
+                    $fileOut putsNonewline "\"$rdefHumman\"\]"
+                }
+                $fileOut putsNonewline "\]\]"
+            }
+        }
+        incr r
+    }
+    $fileOut puts {];
+        </script>
+    }
+
+}
+PrsMarkupVisitor instproc generateClassHierarchy {hierarchyOut repository} {
+    my instvar definitions
+
+    my addNavigation $hierarchyOut
+
+    $hierarchyOut puts "<h1>Class Hierarchy</h1>"
+
+    $hierarchyOut puts {<ul class="classHierarchy">}
+    set r 0
+    foreach d $definitions {
+        set type [lindex $d 0 0]
+        set defFileName [lindex $d 2]
+        if {$type eq "object"} {
+             set objectName [lindex $d 0 1]
+             if {[$repository isXotclClass $objectName]} {
+                 set superclasses [$repository getClassSuperclassesFromFullName $objectName]
+                 set objArr($objectName) [list $r $defFileName $superclasses]
+                 foreach s $superclasses {
+                     lappend superArr($s) $objectName
+                 }
+             }
+        }
+        incr r
+    }
+    # build hierarchy also for classes in core repository
+    if {[array exists superArr]} {
+        set needMore 1
+        set knownObjects [array names objArr]
+        lappend knownObjects ::xotcl::Object ::itcl::object
+        while {$needMore} {
+            set needMore 0
+            foreach objectName [array names superArr] {
+                if {$objectName ni $knownObjects} {
+                    set superclasses [$repository getClassSuperclassesFromFullName $objectName]
+                    lappend knownObjects $objectName
+                    foreach s $superclasses {
+                        lappend superArr($s) $objectName
+                        set needMore 1
+                    }
+                }
+            }
+        }
+    }
+
+    set rootObject ::xotcl::Object
+    if {[info exists superArr($rootObject)]} {
+        my generateClassHierarchyRek $hierarchyOut $rootObject objArr superArr
+    }
+    set rootObject ::itcl::object
+    if {[info exists superArr($rootObject)]} {
+        my generateClassHierarchyRek $hierarchyOut $rootObject objArr superArr
+    }
+    $hierarchyOut puts {</ul>}
+
+}
+PrsMarkupVisitor instproc generateClassHierarchyRek {hierarchyOut rootObject objArr_ref superArr_ref} {
+    upvar $objArr_ref objArr
+    upvar $superArr_ref superArr
+    $hierarchyOut puts <li>
+    if {![catch {set objArr($rootObject)} rootDesc]} {
+        lassign $rootDesc r defFileName superclasses
+        $hierarchyOut puts "<a href=\"[my fileToHtmlFile $defFileName]#r$r\">$rootObject</a>"
+    } else {
+        $hierarchyOut puts $rootObject
+    }
+    if {![catch {set superArr($rootObject)} subclasses]} {
+        $hierarchyOut puts <ul>
+        foreach s $subclasses {
+            my generateClassHierarchyRek $hierarchyOut $s objArr superArr
+        }
+        $hierarchyOut puts </ul>
+    }
+    $hierarchyOut puts </li>
+}
+PrsMarkupVisitor instproc generateErrors errOut {
+    my instvar errors
+
+    $errOut puts {<table class="errors">}
+    $errOut puts {<tr><th>No</th><th>File</th><th>Message</th></tr>}
+
+    set errNo 1
+    foreach error $errors {
+        lassign $error file message
+        $errOut puts "<tr><td>$errNo</td><td><a href=\"[my fileToHtmlFile $file]#e$errNo\" target=\"sourceFrame\">$file</a></td><td>$message</td></tr>"
+        incr errNo
+    }
+    $errOut puts "</table>"
+
+}
+PrsMarkupVisitor instproc generateFrontFile frontOut {
+    my instvar definitions files errors
+
+    my addNavigation $frontOut
+    $frontOut puts "<h1>Files Overview</h1>"
+
+    set r 0
+    set dicproc [dict create]
+    set dicmethod [dict create]
+    set dicobject [dict create]
+    set dicerrors [dict create]
+    set cproc 0
+    set cmethod 0
+    set cobject 0
+    set cerrors 0
+
+    foreach d $definitions {
+        set type [lindex $d 0 0]
+        set defFileName [lindex $d 2]
+        if {$type eq "proc"} {
+            dict incr dicproc $defFileName
+            incr cproc
+        } elseif {$type eq "method"} {
+            dict incr dicmethod $defFileName
+            incr cmethod
+        } elseif {$type eq "object"} {
+            dict incr dicobject $defFileName
+            incr cobject
+        }
+    }
+    foreach d $errors {
+        dict incr dicerrors [lindex $d 0]
+        incr cerrors
+    }
+
+    $frontOut puts {<table class="fileOverview">}
+    $frontOut puts {<tr><th>File</th><th>procs</th><th>objects</th><th>methods</th><th>errors</th></tr>}
+
+    foreach file [lsort -unique $files] {
+        $frontOut puts {<tr><td>}
+        $frontOut puts "<a href=\"[my fileToHtmlFile $file]\">$file</a>"
+        $frontOut puts {</td><td>}
+        if {[dict exists $dicproc $file]} {
+            $frontOut puts [dict get $dicproc $file]
+        }
+        $frontOut puts {</td><td>}
+        if {[dict exists $dicobject $file]} {
+            $frontOut puts [dict get $dicobject $file]
+        }
+        $frontOut puts {</td><td>}
+        if {[dict exists $dicmethod $file]} {
+            $frontOut puts [dict get $dicmethod $file]
+        }
+        $frontOut puts {</td><td>}
+        if {[dict exists $dicerrors $file]} {
+            $frontOut puts [dict get $dicerrors $file]
+        }
+        $frontOut puts {</td></tr>}
+    }
+    $frontOut puts {<tr><td>sum</td>}
+    $frontOut puts "<td>$cproc</td><td>$cobject</td><td>$cmethod</td><td>$cerrors</td></tr>"
+    $frontOut puts "</table>"
+    $frontOut puts "<hr><small>
+generated on [clock format [clock seconds]] by <a href=\"http://www.xdobry.de/ttclcheck\" target=\"_parent\">ttclcheck</a>
+<a href=\"http://www.gnu.org\" target=\"_parent\">GPL</a> Software.
+(Powered by <a href=\"http://www.tcl.tk\" target=\"_parent\">Tcl</a> and <a href=\"http://www.xotcl.org\" target=\"_parent\">XOTcl</a>)\"
+</small>"
+}
+PrsMarkupVisitor instproc generateIndexAll indexOut {
+    my instvar definitions
+    set r 0
+    set dic [dict create]
+    foreach d $definitions {
+        set type [lindex $d 0 0]
+        set defFileName [lindex $d 2]
+        if {$type eq "proc"} {
+            set procname [lindex $d 0 1]
+            set ns [namespace qualifiers $procname]
+            if {$ns eq ""} {
+                set ns ::
+            } else {
+                set ns [string trimleft $ns :]
+            }
+            set procShort [namespace tail $procname]
+            dict set dic $type $ns $procShort [list $r $defFileName $procShort]
+        } elseif {$type eq "method"} {
+            lassign [lindex $d 0 1] class mtype method
+            dict set dic $type $class $mtype $method [list $r $defFileName $method]
+        } elseif {$type eq "object"} {
+            dict set dic $type [lindex $d 0 1] [list $r $defFileName]
+        }
+        incr r
+    }
+    my generateSignaturesFromDic $indexOut $dic
+
+}
+PrsMarkupVisitor instproc generatePackages packageOut {
+    my instvar definitions globalRefsArr definitionsKey packageRefs
+
+    my addNavigation $packageOut
+
+    $packageOut puts "<h1>Packages</h1>"
+
+    set packages [list]
+    set r 0
+    foreach d $definitions {
+        set type [lindex $d 0 0]
+        set defFileName [lindex $d 2]
+        if {$type eq "package"} {
+            lappend packages [list [lindex $d 0 1] [lindex $d 2]]
+        }
+    }
+    foreach package [lsort -index 0 $packages] {
+        lassign $package name file
+        $packageOut puts <ul>
+        $packageOut puts "<li><a href=\"[my fileToHtmlFile $file]\">$name</a> $file</li>"
+        if {![catch {set packageRefs($file)} reqPackages]} {
+            $packageOut puts <ul>
+            foreach p $reqPackages {
+                $packageOut puts "<li>$p</li>"
+            }
+            $packageOut puts </ul>
+        }
+        $packageOut puts </ul>
+   }
+
+}
+PrsMarkupVisitor instproc generateSigMethods {sigOut dicMethods {class {}}} {
+    foreach m [lsort [dict keys $dicMethods]] {
+        set d [dict get $dicMethods $m]
+        set htmlFile [my fileToHtmlFile [lindex $d 1]]
+        if {$class ne ""} {
+            set classAttr " class=\"$class\""
+        } else {
+            set classAttr ""
+        }
+        $sigOut puts "<li><a href=\"$htmlFile#r[lindex $d 0]\" target=\"sourceFrame\"$classAttr>[string trimleft [lindex $d 2] :]</a></li>"
+    }
+}
+PrsMarkupVisitor instproc generateSignatures sigOut {
+    my instvar fileName definitions
+    set r 0
+    set dic [dict create]
+    foreach d $definitions {
+        if {[lindex $d 2] eq $fileName} {
+            set type [lindex $d 0 0]
+            set defFileName [file tail [lindex $d 2]]
+            if {$type eq "proc"} {
+                set procname [lindex $d 0 1]
+                set ns [namespace qualifiers $procname]
+                if {$ns eq ""} {
+                    set ns ::
+                } else {
+                    set ns [string trimleft $ns :]
+                }
+                set procShort [namespace tail $procname]
+                dict set dic $type $ns $procShort [list $r $defFileName $procShort]
+            } elseif {$type eq "method"} {
+                lassign [lindex $d 0 1] class mtype method
+                dict set dic $type $class $mtype $method [list $r $defFileName $method]
+            } elseif {$type eq "object"} {
+                dict set dic $type [lindex $d 0 1] [list $r $defFileName]
+            }
+        }
+        incr r
+    }
+    my generateSignaturesFromDic $sigOut $dic
+}
+PrsMarkupVisitor instproc generateSignaturesFromDic {sigOut dic} {
+    $sigOut puts {<div id="treecontrol"><a href="#?">Collapse All</a> | <a href="#?">Expand All</a></div>}
+    if {[dict exists $dic proc]} {
+        # TODO order by namespaces
+        $sigOut puts "<h4>Procedures</h4>"
+        $sigOut puts {<ul class="tv">}
+        foreach ns [lsort [dict keys [dict get $dic proc]]] {
+            $sigOut puts "<li><div class=\"hita\"></div>$ns"
+            $sigOut puts {<ul class="te">}
+            my generateSigMethods $sigOut [dict get $dic proc $ns]
+            $sigOut puts {</ul>}
+            $sigOut puts {</li>}
+        }
+        $sigOut puts {</ul>}
+    }
+    if {[dict exists $dic method]} {
+        $sigOut puts "<h4>Objects</h4>"
+        $sigOut puts {<ul class="tv">}
+        foreach object [lsort [dict keys [dict get $dic method]]] {
+            set dicObject [dict get $dic method $object]
+            set objectName [string trimleft $object :]
+            if {[dict exists $dic object $object]} {
+                 set d [dict get $dic object $object]
+                 $sigOut puts "<li><div class=\"hita\"></div><a href=\"[my fileToHtmlFile [lindex $d 1]]#r[lindex $d 0]\" target=\"sourceFrame\">$objectName</a>"
+            } else {
+                 $sigOut puts "<li>>$objectName<li>"
+            }
+            set hasElements 0
+            if {[dict exists $dicObject instproc]} {
+                set hasElements 1
+                $sigOut puts {<ul class="te">}
+                my generateSigMethods $sigOut [dict get $dicObject instproc]
+            }
+            if {[dict exists $dicObject proc]} {
+                if {!$hasElements} {
+                    $sigOut puts {<ul class="te">}
+                }
+                my generateSigMethods $sigOut [dict get $dicObject proc] static
+                set hasElements 1
+            }
+            if {$hasElements} {
+                $sigOut puts {</ul>}
+            }
+            $sigOut puts {</li>}
+        }
+        $sigOut puts {</ul>}
+    }
+}
+PrsMarkupVisitor instproc getCoreLinkForKey refKey {
+    my instvar tclCommands tkCommands packageArr
+    set type [lindex $refKey 0]
+    if {$type eq "proc"} {
+        set name [string trimleft [lindex $refKey 1] :]
+        if {$name in $tclCommands} {
+            return "http://www.tcl.tk/man/tcl8.5/TclCmd/$name.htm"
+        } elseif {$name in $tkCommands} {
+            return "http://www.tcl.tk/man/tcl8.5/TkCmd/$name.htm"
+        }
+    } elseif {$type eq "object"} {
+        set objname [lindex $refKey 1]
+        if {$objname eq "::xotcl::Object"} {
+            return "http://media.wu.ac.at//doc/langRef-xotcl.html#Object"
+        } elseif {$objname eq "::xotcl::Class"} {
+            return "http://media.wu.ac.at//doc/langRef-xotcl.html#Class"
+        }
+    } elseif {$type eq "method"} {
+        lassign [lindex $refKey 1] objname methodtype method
+        if {$objname eq "::xotcl::Object" && $methodtype eq "instproc" && $method in {abstract append array autoname check class cleanup configure contains copy eval exists extractConfigureArg filter filterguard filtersearch forward getExitHandler hasclass incr info invar isclass ismetaclass ismixin isobject istype lappend mixin move noinit parametercmd procsearch requireNamespace setExitHandler subst trace unset uplevel upvar volatile vwait}} {
+            return "http://media.wu.ac.at//doc/langRef-xotcl.html#Object-$method"
+        } elseif {$objname eq "::xotcl::Class" && $methodtype eq "instproc" && $method in {unknown allinstances alloc info instdestroy instfilter instfilterguard instforward instinvar instmixin instparametercmd parameter parameterclass recreate superclass}} {
+            return "http://media.wu.ac.at//doc/langRef-xotcl.html#Class-$method"
+        }
+    } elseif {$type eq "package"} {
+        set packageName [lindex $refKey 1]
+        if {![catch {set packageArr($packageName)} ref]} {
+            return $ref
+        }
+    }
+    return
+}
+PrsMarkupVisitor instproc getElemContext elem {
+    if {![Object isobject $elem]} {
+        my set context
+    } else {
+        if {[Object isobject $elem] && [$elem exists context]} {
+            return [$elem set context]
+        } else {
+            return [my getElemContext [$elem info parent]]
+        }
+    }
+}
+PrsMarkupVisitor instproc hasErrors {} {
+    my instvar errors
+    expr {[llength $errors]>0}
+}
+PrsMarkupVisitor instproc init {} {
+    my set definitionsKey [list]
+    my set definitions [list]
+    my set varDefinitions [list]
+    my set varLocalDefinitions [list]
+    my set varIndex 0
+    my set errors [list]
+    my set errorIndex 1
+    my set files [list]
+
+    my set tkCommands [lsort {bell frame	panedwindow	tk_focusFollowsMouse	toplevel	ttk::separator
+bind	grab	photo	tk_focusNext	ttk::button	ttk::sizegrip
+bindtags	grid	place	tk_focusPrev	ttk::checkbutton	ttk::spinbox
+bitmap	image	radiobutton	tk_getOpenFile	ttk::combobox	ttk::style
+button	keysyms	raise	tk_getSaveFile	ttk::entry	ttk::treeview
+canvas	label	scale	tk_menuSetFocus	ttk::frame	ttk::widget
+checkbutton	labelframe	scrollbar	tk_messageBox	ttk::intro	ttk_image
+clipboard	listbox	selection	tk_optionMenu	ttk::label	ttk_vsapi
+colors	loadTk	send	tk_popup	ttk::labelframe	winfo
+console	lower	spinbox	tk_setPalette	ttk::menubutton	wm
+cursors	menu	text	tk_textCopy	ttk::notebook
+destroy	menubutton	tk	tk_textCut	ttk::panedwindow
+entry	message	tk_bisque	tk_textPaste	ttk::progressbar
+event	option	tk_chooseColor	tkerror	ttk::radiobutton
+focus	options	tk_chooseDirectory	tkvars	ttk::scale
+font	pack	tk_dialog	tkwait	ttk::scrollbar}]
+    my set tclCommands [lsort {tell socket subst open eof pwd glob list pid exec auto_load_index time unknown eval lassign lrange fblocked lsearch auto_import gets case lappend variable llength auto_execok linsert error catch clock info split array fconfigure concat join lreplace source fcopy global switch auto_qualify update close cd auto_load file append lrevers e format unload read package binary namespace scan apply trace seek zlib chan flush after vwait dict uplevel lset rename rechan fileevent regexp lrepeat upvar encoding expr unset load regsub history interp exit lsort tclLog string}]
+    my array set packageArr {
+        tk http://www.tcl.tk/man/tcl8.5/TkCmd/contents.htm
+        mysqltcl http://www.xdobry.de/mysqltcl/
+        XOTcl http:://www.xotcl.org
+        tdom http:://www.tdom.org
+        Itcl http://incrtcl.sourceforge.net/itcl/
+        sqlite3 http://www.sqlite.org/tclsqlite.html
+        tcom http://www.vex.net/~cthuang/tcom/
+    }
+}
+PrsMarkupVisitor instproc initNewFile {} {
+    my instvar varLocalDefinitions varDefinitions varIndex
+    set varIndex 0
+    set varDefinitions [list]
+    set varLocalDefinitions [list]
+}
+PrsMarkupVisitor instproc initPass2 {} {
+    my instvar globalRefsArr errors errorIndex
+    #unset -nocomplain globalRefsArr
+    set errors [list]
+    set errorIndex 1
+}
+PrsMarkupVisitor instproc insertHtmlMarkups {content out} {
+    my instvar markups fileName currentDefs definitionsKey currentRefs definitions
+    set insertions [list]
+    set insertionsEnd [list]
+
+    foreach d $currentDefs {
+        set r [lsearch $definitionsKey $d]
+        if {$r>=0} {
+            lappend insertions [list [lindex $definitions $r 1] "<a name=\"r$r\">"]
+            lappend insertions [list [expr {[lindex $definitions $r 1]}] "</a>"]
+        }
+    }
+
+    foreach m $markups {
+        lassign $m begin end markup varType varIndex
+
+        if {$varIndex ne ""} {
+            set dataVarIndex " data-vindex=\"$varIndex\""
+        } else {
+            set dataVarIndex ""
+        }
+        if {$markup eq "error"} {
+            lappend insertions [list $begin "<a class=\"$markup\" name=\"e$varIndex\" data-type=\"$varType\">"]
+            lappend insertionsEnd [list [expr {$end+1}]  "</a>"]
+
+        } else {
+            if {$varType ne ""} {
+                lappend insertions [list $begin "<span class=\"$markup\" data-type=\"$varType\"$dataVarIndex>"]
+            } else {
+                lappend insertions [list $begin "<span class=\"$markup\"$dataVarIndex>"]
+            }
+            lappend insertionsEnd [list [expr {$end+1}]  "</span>"]
+        }
+    }
+    foreach ref $currentRefs {
+        lassign $ref key begin end methodDesc
+        set r [lsearch $definitionsKey $key]
+        if {$r>=0} {
+            set refFileName [lindex $definitions $r 2]
+            if {$refFileName ne $fileName && $refFileName ne ""} {
+                set url [my fileToRelativeHtmlFile $out $refFileName]
+            } else {
+                set url ""
+            }
+            append url #r$r
+            if {$methodDesc ne ""} {
+                lappend insertions [list $begin "<a href=\"$url\" title=\"[my methodDescToHuman $methodDesc]\">"]
+            } else {
+                lappend insertions [list $begin "<a href=\"$url\">"]
+            }
+            lappend insertions [list [expr {$end+1}] "</a>"]
+        } else {
+            set coreLink [my getCoreLinkForKey $key]
+            if {$coreLink ne ""} {
+                lappend insertions [list $begin "<a class=\"ext\" href=\"$coreLink\" target=\"_blank\">"]
+                lappend insertions [list [expr {$end+1}] "</a>"]
+            }
+        }
+    }
+    # the tags should be nested if on one element <b><a>content</a></b> not <b><a>content</b></a>
+    lappend insertions {*}$insertionsEnd
+
+
+    set insertions [lsort -index 0 -integer $insertions]
+    set start 0
+    set ret ""
+    foreach i $insertions {
+        lassign $i pos icontent
+        if {$pos>0} {
+            append ret [string map {> &gt; < &lt; & &amp; \t "    "} [string range $content $start [expr {$pos-1}]]]
+        }
+        append ret $icontent
+        set start $pos
+    }
+    append ret [string map {> &gt; < &lt; & &amp; \t "    "} [string range $content $start end]]
+    $out putsNonewline $ret
+}
+PrsMarkupVisitor instproc markup {elem type} {
+    my instvar markups
+    lappend markups [list [$elem set begin] [$elem set end] $type]
+}
+PrsMarkupVisitor instproc markupVariable {elem type} {
+    my instvar markups varLocalDefinitions varDefinitions varIndex
+    set elemContext [my getElemContext $elem]
+    set varName [$elem getVariableName]
+    lassign [$elemContext getVariableDesc $varName] varType varScope
+    if {[lindex $varScope 0] ne "local"} {
+        set fullVarName [concat $varName $varScope]
+        append type " [lindex $varScope 0]"
+        set index [lsearch -index 0 $varDefinitions $fullVarName]
+        if {$index<0} {
+            set myIndex $varIndex
+            incr varIndex
+            lappend varDefinitions [list $fullVarName $myIndex]
+        } else {
+            set myIndex [lindex $varDefinitions $index 1]
+        }
+    } else {
+        set index [lsearch -index 0 $varLocalDefinitions $varName]
+        if {$index<0} {
+            set myIndex $varIndex
+            incr varIndex
+            lappend varLocalDefinitions [list $varName $myIndex]
+        } else {
+            set myIndex [lindex $varLocalDefinitions $index 1]
+        }
+    }
+    if {[lindex $varType 0] ni {unknown def {}}} {
+       lappend markups [list [$elem set begin] [$elem set end] $type $varType $myIndex]
+    } else {
+       lappend markups [list [$elem set begin] [$elem set end] $type {} $myIndex]
+    }
+}
+PrsMarkupVisitor instproc methodDefToHuman def {
+    switch -exact -- [lindex $def 0] {
+        method {
+            lassign [lindex $def 1] class type method
+            if {$type ne "instproc"} {
+                return "$class $type>$method"
+            } else {
+                return "$class>$method"
+            }
+        }
+        proc {
+            return [lindex $def 1]
+        }
+        default {
+            return $def
+        }
+    }
+}
+PrsMarkupVisitor instproc methodDescToHuman methodDesc {
+    return $methodDesc
+}
+PrsMarkupVisitor instproc visit elem {
+    if {[$elem hasclass PrsVariable] || [$elem hasclass PrsVariableRef]} {
+        my markupVariable $elem variable
+    } elseif {[$elem hasclass PrsCommand]} {
+        set first [$elem getElem 0]
+        if {[$first hasclass PrsLiteral]} {
+            my markup $first command
+        }
+    } elseif {[$elem hasclass PrsQuoted] && [$elem hasQuote]} {
+        my markup $elem quote
+    } elseif {[$elem hasclass PrsComment]} {
+        my markup $elem comment
+    }
+    if {[$elem exists def]} {
+        my addDef $elem
+    }
+    if {[$elem exists ref]} {
+        my addRef $elem
+    }
+}
+Class create Tcl2HTML -superclass ::PrsFileContext
+@ Tcl2HTML idemeta categories app-start
+@ Tcl2HTML idemeta categoriesMethods parseArgs
+@ Tcl2HTML idemeta component IDETclToHtml
+Tcl2HTML instproc cleanupSubcontext subcontext {
+    # do not remove
+}
+Tcl2HTML instproc generateSignatures {} {
+    my instvar sigOut
+    my @markup generateSignatures $sigOut
+}
+Tcl2HTML instproc getPathTruncateFile file {
+    my instvar pathTruncateCount
+    file join {*}[lrange [file split $file] $pathTruncateCount end]
+}
+Tcl2HTML instproc handleGlobalComment comment {
+    next
+    my instvar parseMode htmlOut
+    if {$parseMode eq "report"} {
+        if {[string trim $comment] ne ""} {
+            $htmlOut putsNonewline {<span class='comment'>}
+            $htmlOut putsNonewlineMasked $comment
+            $htmlOut putsNonewline {</span>}
+        } else {
+            $htmlOut putsNonewlineMasked $comment
+        }
+    }
+}
+Tcl2HTML instproc init {} {
+    next
+    my initMarkup
+}
+Tcl2HTML instproc initMarkup {} {
+    PrsMarkupVisitor create [self]::@markup
+}
+Tcl2HTML instproc initPass2 {} {
+    next
+    my @markup initPass2
+}
+Tcl2HTML instproc initPathTruncate files {
+    my instvar pathTruncateCount
+    set pathTruncateCount 0
+    set filesPaths [list]
+    # find count of common directory elements
+    # "a/b/c" and "a/b/d" has 2 "a/b"
+    foreach f $files {
+        lappend filesPaths [file split $f]
+    }
+    while 1 {
+        set match 1
+        set first 1
+        foreach fp $filesPaths {
+            if {$pathTruncateCount+1>=[llength $fp]} {
+                set match 0
+                break
+            }
+            if {$first} {
+                set currentPath [lindex $fp $pathTruncateCount]
+                set first 0
+            } else {
+                if {$currentPath ne [lindex $fp $pathTruncateCount]} {
+                    set match 0
+                    break
+                }
+            }
+        }
+        if {$match} {
+            incr pathTruncateCount
+        } else {
+            break
+        }
+    }
+}
+Tcl2HTML instproc openTestFile {} {
+    my parseFiles [list temptest.tcl]
+}
+Tcl2HTML instproc parseArgs arguments {
+    set elem [lindex $arguments 0]
+    if {$elem eq "-od"} {
+        if {[llength $arguments]<2} {
+            error "expect argument for option -od"
+        }
+        set outDir [lindex $arguments 1]
+        if {![file isdir $outDir]} {
+            file mkdir $outDir
+        }
+        my set outDir $outDir
+        return 2
+    } elseif {$elem eq "-noerror"} {
+        my set noerror 1
+        return 1
+    }
+    return 0
+}
+Tcl2HTML instproc parseFile file {
+    my instvar markups htmlOut filesOut parseMode sigOut outDir
+    if {$parseMode eq "report"} {
+        set markups [list]
+        set htmlFile [file rootname [my getPathTruncateFile $file]].html
+        set htmlOut [TclHtmlBuilder new -childof [self] $outDir $htmlFile]
+
+        set sigFile [file rootname [my getPathTruncateFile $file]]_sig.html
+        set sigOut [TclHtmlBuilder new -childof [self] $outDir $sigFile]
+
+        $sigOut printHtmlHeader "Tcl Source (Tcl2HTML)" "<script class=\"include\" type=\"text/javascript\" src=\"[$sigOut getRootReference jquery-1.5.1.js]\"></script>"
+        $sigOut puts "<h3>$file</h3>"
+
+        $filesOut puts "<a href=\"$sigFile\" target=\"signatureFrame\" data-source=\"$htmlFile\">[my getPathTruncateFile $file]</a><br>"
+
+        $htmlOut printHtmlHeader $file "<script class=\"include\" type=\"text/javascript\" src=\"[$htmlOut getRootReference jquery-1.5.1.js]\"></script>"
+        my @markup addNavigation $htmlOut "<a href=\"[$htmlOut getRelativeReference $sigFile]\" target=\"signatureFrame\">Outline</a> "
+        $htmlOut puts "<h1>[my getPathTruncateFile $file]</h1>
+<pre>"
+
+        my @markup initNewFile
+
+        next
+
+        $htmlOut puts {</pre>}
+        my @markup generateBackReferences $htmlOut
+        $htmlOut puts "<script class=\"include\" type=\"text/javascript\" src=\"[$htmlOut getRootReference tclhtml-file.js]\"></script>"
+
+        my generateSignatures
+
+        $sigOut puts "<script class=\"include\" type=\"text/javascript\" src=\"[$sigOut getRootReference tclhtml-sig.js]\"></script>"
+
+        $sigOut closeAndDestroy
+        $htmlOut closeAndDestroy
+    } else {
+        next
+    }
+}
+Tcl2HTML instproc parseFiles files {
+    my instvar filesOut outDir repository
+    my prepareOutDir
+    my initPathTruncate $files
+
+    set filesOut [TclHtmlBuilder new -childof [self] $outDir "files.html"]
+    $filesOut printHtmlHeader {Tcl Source (Tcl2HTML)} {<script class="include" type="text/javascript" src="jquery-1.5.1.js"></script>}
+    $filesOut puts "<a href=\"all.html\" target=\"signatureFrame\">All</a><br>"
+    next
+    $filesOut puts {<script class="include" type="text/javascript" src="tclhtml-files.js"></script>}
+    $filesOut closeAndDestroy
+
+    set allFileOut [TclHtmlBuilder new -childof [self] $outDir "all.html"]
+    $allFileOut printHtmlHeader  All  {<script class="include" type="text/javascript" src="jquery-1.5.1.js"></script>}
+    $allFileOut puts "<h3>All Files</h3>"
+    my @markup generateIndexAll $allFileOut
+    $allFileOut puts {<script class="include" type="text/javascript" src="tclhtml-sig.js"></script>}
+    $allFileOut closeAndDestroy
+
+    set fontFileOut [TclHtmlBuilder new -childof [self] $outDir "front.html"]
+    $fontFileOut printHtmlHeader  "Files Overview"
+    my @markup generateFrontFile $fontFileOut
+    $fontFileOut closeAndDestroy
+
+    set indexAllOut [TclHtmlBuilder new -childof [self] $outDir "index-all.html"]
+    $indexAllOut printHtmlHeader "Index All"
+    my @markup generateABCIndex $indexAllOut
+    $indexAllOut closeAndDestroy
+
+    set classTreeOut [TclHtmlBuilder new -childof [self] $outDir "classes.html"]
+    $classTreeOut printHtmlHeader "Classes Tree"
+    my @markup generateClassHierarchy $classTreeOut $repository
+    $classTreeOut closeAndDestroy
+
+    set packagesOut [TclHtmlBuilder new -childof [self] $outDir "packages.html"]
+    $packagesOut printHtmlHeader "Packages"
+    my @markup generatePackages $packagesOut
+    $packagesOut closeAndDestroy
+
+    set errorsOut [TclHtmlBuilder new -childof [self] $outDir "errors.html"]
+    $errorsOut printHtmlHeader "Errors"
+    my @markup generateErrors $errorsOut
+    $errorsOut closeAndDestroy
+
+}
+Tcl2HTML instproc parsePartGlobal script {
+    next
+    my instvar htmlOut parseMode fileName errors noerror
+    if {[info exists noerror] && $noerror} {
+        set errors [list]
+    }
+    if {$parseMode eq "report"} {
+        my @markup collectMarkups [self] [my getPathTruncateFile $fileName]
+        my @markup insertHtmlMarkups $script $htmlOut
+    } else {
+        my @markup collectMarkups [self] [my getPathTruncateFile $fileName]
+    }
+}
+Tcl2HTML instproc prepareOutDir {} {
+    my instvar outDir
+    if {![info exists outDir]} {
+        set outDir ""
+        return
+    }
+    set rooDir [PrsCheckerOptions getRootDir]
+
+    foreach f {tcl2html.css jquery-1.5.1.js tclhtml-files.js tclhtml-file.js tclhtml-sig.js tclhtml-index.js index.html} {
+        file copy -force [file join $rooDir ttclcheck-res $f] [file join $outDir $f]
+    }
+    file mkdir [file join $outDir images]
+    foreach f [glob -directory [file join $rooDir images] *] {
+        file copy -force $f [file join $outDir images [file tail $f]]
+    }
+}
+Tcl2HTML instproc printHtmlFooter htmlOut {
+    puts $htmlOut "</pre>
+</body>
+</html>"
+}
+Tcl2HTML instproc printHtmlHeader {outstream title {headeradds {}}} {
+
+    puts $outstream "<!DOCTYPE HTML PUBLIC \"-//IETF//DTD HTML//EN\">
+<html>
+<head>
+  <meta name=\"Language\" content=\"en\">
+  <meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\">
+  <title>$title</title>
+  <link rel=\"stylesheet\" type=\"text/css\" href=\"tcl2html.css\">
+  $headeradds
+</head>
+<body>
+"
+
+}
+Tcl2HTML proc startFromShell arguments {
+    #TclParser setDevelMode 1
+    set fileContext [Tcl2HTML new]
+    $fileContext startWithArgs $arguments
+}
+Class create TclHtmlBuilder
+@ TclHtmlBuilder idemeta component IDETclToHtml
+TclHtmlBuilder instproc closeAndDestroy {} {
+    my printHtmlFooter
+    my closeFile
+    my destroy
+}
+TclHtmlBuilder instproc closeFile {} {
+    my instvar out
+    if {[info exists out]} {
+        close $out
+        unset out
+    }
+}
+TclHtmlBuilder instproc getRelativeReference linkName {
+    my instvar rootBackReference fileName
+    set deep [expr {[llength [file split $fileName]]-1}]
+    set fileSplit [file split $fileName]
+    set linkSplit [file split $linkName]
+    set common 0
+    foreach linkDir $linkSplit fileDir $fileSplit {
+        if {$linkDir ne $fileDir} {
+            break
+        }
+        incr common
+    }
+
+    # linkName = fileName
+    if {$deep<$common} {
+        return [lindex $linkSplit end]
+    }
+
+    if {$common!=$deep} {
+        if {$common>0} {
+            file join {*}[lrepeat [expr {$deep-$common}] ..] {*}[lrange $linkSplit $common end]
+        } else {
+            file join {*}[lrepeat $deep ..] $linkName
+        }
+    } else {
+        file join {*}[lrange $linkSplit $common end]
+    }
+}
+TclHtmlBuilder instproc getRootReference linkName {
+    my instvar rootBackReference
+    file join $rootBackReference $linkName
+}
+TclHtmlBuilder instproc init {outDir _fileName} {
+    my instvar rootBackReference fileName
+    set fileName $_fileName
+    set deep [expr {[llength [file split $fileName]]-1}]
+    if {$deep>=1} {
+        set rootBackReference [file join {*}[lrepeat $deep ..]]
+    } else {
+        set rootBackReference ""
+    }
+    if {$outDir ne ""} {
+        set fullFileName [file join $outDir $fileName]
+        set parent [file dirname $fullFileName]
+        if {$parent ne "" && ![file isdirectory $parent]} {
+            file mkdir $parent
+        }
+    } else {
+        set rootBackReference ""
+        set fullFileName $fileName
+    }
+    my  openFile $fullFileName
+}
+TclHtmlBuilder instproc openFile fileName {
+    my instvar out
+    if {[info exists out]} {
+        error "html out file already opened"
+    }
+    set out [open $fileName w]
+    fconfigure $out -encoding utf-8
+}
+TclHtmlBuilder instproc printHtmlFooter {} {
+    my instvar out
+    puts $out {</body>
+</html>}
+}
+TclHtmlBuilder instproc printHtmlHeader {title {headeradds {}}} {
+    my instvar out
+
+    puts $out "<!DOCTYPE HTML PUBLIC \"-//IETF//DTD HTML//EN\">
+<html>
+<head>
+  <meta name=\"Language\" content=\"en\">
+  <meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\">
+  <meta name=\"generator\" content=\"ttclcheck\">
+  <meta name=\"date\" content=\"[clock format [clock seconds] -format {%Y-%m-%dT%H:%M:%S}]\">
+  <title>$title</title>
+  <link rel=\"stylesheet\" type=\"text/css\" href=\"[my getRootReference tcl2html.css]\">
+  $headeradds
+</head>
+<body>
+"
+
+}
+TclHtmlBuilder instproc puts text {
+    my instvar out
+    puts $out $text
+}
+TclHtmlBuilder instproc putsNonewline text {
+    my instvar out
+    puts -nonewline $out $text
+}
+TclHtmlBuilder instproc putsNonewlineMasked text {
+    my putsNonewline [string map {> &gt; < &lt; & &amp; \t "    "}  $text]
+}
+

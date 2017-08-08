@@ -1,0 +1,1 @@
+myssh.sh "/usr/bin/gdbserver host:10000 --attach $1"
