@@ -42,6 +42,14 @@ if [ $RROOT = "PWD" ]
 then
     RROOT=$PWD;
 fi;
+if [ $LROOT = "MYSBOX" ]
+then
+    LROOT=$MYSBOX;
+fi;
+if [ $RROOT = "MYSBOX" ]
+then
+    RROOT=$MYSBOX;
+fi;
 USER=$(head -3 $RRSYNC|grep "^U:"|cut -f2 -d':');
 if [ -z "$LROOT" ] || [ -z "$RROOT" ]
 then
