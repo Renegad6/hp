@@ -70,4 +70,8 @@ do
     (/usr/bin/svnadmin dump $d |gzip -c > /usersnfs/deantoni/common/backup/svnrep_$PRJ.dump.gz) > /dev/null 2>&1;
 done;
 
+# Dump de gitrep 
+echo "$(date)  backing up gitrep " >> $TRZ;
+export GIT_DIR=/ae/gitrep/.git/
+git bundle create /usersnfs/deantoni/common/backup/gitrep.dmp --all
 exit 0;
