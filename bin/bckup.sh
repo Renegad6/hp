@@ -74,4 +74,5 @@ done;
 echo "$(date)  backing up gitrep " >> $TRZ;
 export GIT_DIR=/ae/gitrep/.git/
 git bundle create /usersnfs/deantoni/common/backup/gitrep.dmp --all
+gzip /usersnfs/deantoni/common/backup/gitrep.dmp
 exit 0;

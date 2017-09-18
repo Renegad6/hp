@@ -90,7 +90,8 @@ fi;
 done;
 
 cd $(dirname $RRSYNC);
-svn status |grep -v "ign\."|grep "^?"
+#svn status |grep -v "ign\."|grep "^?"
+git status -s|grep -v "ign\."|grep "^?"
 if [ $? == 0 ]
 then
     echo "WARNING: new unversioned files detected in $(dirname $RRSYNC).!!!";
