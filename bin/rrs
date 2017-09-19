@@ -1,0 +1,31 @@
+#!/bin/sh 
+# $Header:$
+# sync current folder with remote one (remote -> local).Must have a 'rrsync' file on current folder.
+
+getScriptPath () {
+  echo ${0%/*}/
+}
+
+if [ -z "$AE_SANDBOX_PATH" ]
+then
+    echo "ae_init_sandbox not performed, impossible to detect risks!!!";
+    exit -1;
+fi;
+
+if [ "$AE_SANDBOX_PATH" = "$PWD" ];
+then
+    echo "trying sync from REAL!!! sandbox!!";
+    exit -1;
+fi;
+
+for d in bcd_io bcd_views elektra foundation printerInterface products;
+do
+    echo "d:"$d;
+    rsync -a --prune-empty-dirs --delete\
+    --include='*.cpp' --include='*.h' --include='*.xml' --include='*.isd' \
+    --include='*/'\
+    --exclude "*"\
+    /ae/bcd_local/$d $PWD/$d;
+done;
+
+exit 0;
