@@ -25,7 +25,7 @@ do
     --include='*.cpp' --include='*.h' --include='*.xml' --include='*.isd' \
     --include='*/'\
     --exclude "*"\
-    /ae/bcd_local/$d $PWD/$d;
+    $AE_SANDBOX_PATH/$d/ $PWD/$d/;
 done;
 
 exit 0;
