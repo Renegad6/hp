@@ -17,8 +17,8 @@ then
     echo "trying sync from REAL!!! sandbox!!";
 fi;
 
-ORIG=$AE_SANDBOX_PATH;
-DEST=$PWD;
+ORIG=$MYSBOX;
+DEST=$AE_SANDBOX_PATH;
 
 if [ "$1" = "-r" ];
 then
