@@ -15,7 +15,7 @@ then
     exit -1;
 fi;
 
-svn status|grep "^[M|A]"| cut -f2- -d" " > /tmp/$$svnrevert;
+svn status $AE_SANDBOX_PATH|grep "^[M|A]"| cut -f2- -d" " > /tmp/$$svnrevert;
 svn revert -R .;
 for f in $(cat /tmp/$$svnrevert);
 do

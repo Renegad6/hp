@@ -33,10 +33,13 @@ then
     exit 0;
 fi;
 
+echo "ORIG:"$ORIG;
+echo "DEST:"$DEST;
+
 for d in bcd_io bcd_views elektra foundation printerInterface products;
 do
     echo "d:"$d;
-    rsync -a --delete\
+    rsync -a --delete \
     --include='*.cpp' --include='*.h' --include='*.xml' --include='*.isd' --include=".fsm*" --include="*.xsd" --include="*.i" --include="*.tcl_i" \
     --include='*/'\
     --exclude "*"\
