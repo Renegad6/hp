@@ -22,7 +22,7 @@ DEST=$AE_SANDBOX_PATH;
 
 if [ "$1" = "-r" ];
 then
-    TMP=$AE_SANDBOX_PATH;
+    TMP=$ORIG;
     ORIG=$DEST;
     DEST=$TMP;
 fi;
