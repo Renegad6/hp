@@ -1,0 +1,20 @@
+#!/bin/sh -e
+# $Header:$
+# Commit de svn con proteccion para no hacerlo en una sandbox.
+#...
+
+getScriptPath () {
+  echo ${0%/*}/
+}
+
+source $(getScriptPath)/common.sh;
+
+ssh-copy-id root@$(WW) << EOF
+socorro!
+EOF
+
+ssh-copy-id atlas@$(WW) << EOF
+socorro!
+EOF
+
+exit 0;
