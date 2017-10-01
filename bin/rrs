@@ -48,7 +48,7 @@ for d in bcd_io bcd_views elektra foundation printerInterface products;
 do
     echo "d:"$d;
     rsync $FLAGS  \
-    --include='*.cpp' --include='*.h' --include='*.xml' --include='*.isd' --include="*.fsm*" --include="*.xsd" --include="*.i" --include="*.tcl_i" \
+    --include='*.cpp' --include='*.h' --include='*.xml' --include='*.isd' --include="*.fsm*" --include="*.xsd" --include="*.tcl" --include="*.py" --include="*.i" --include="*.tcl_i" \
     --include='*/'\
     --exclude="*"\
     $ORIG/$d/ $DEST/$d/
