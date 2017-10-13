@@ -19,7 +19,7 @@ fi;
 
 ORIG=$MYSBOX;
 DEST=$AE_SANDBOX_PATH;
-FLAGS="-a"
+FLAGS="-a --prune-empty-dirs"
 
 if [ "$1" = "-r" ];
 then
@@ -32,7 +32,7 @@ if [ $ORIG = $AE_SANDBOX_PATH ];
 then
     # if copying from sandbox , make sure to delete non existing files
     echo "deleting non longer exisiting files!!!"
-    FLAGS="-a --delete"
+    FLAGS=$FLAGS" --delete"
 fi;
 
 if [ "$1" = "-c" ];

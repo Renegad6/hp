@@ -42,19 +42,24 @@ check () {
     fi;
 }
 check2 () {
-    PRODUCT=$(cat ${PRODUCT_TARGET_ROOT}/configure.product);
-    (ssh root@$IP grep \"^PrinterConfigurator:.*Framework to boot\" /tmp/printer.log|sed -e"s/\[[0-9:. -]*\]//"|sed -e"s/  */ /g") > /tmp/ww.2;
-    grep $PRODUCT /tmp/ww.2 > /dev/null 2>&1;
-    if test ! $? -eq 0
+    if test -f ${PRODUCT_TARGET_ROOT}/configure.product;
     then
-        echo "WORKINGWITH CHECK2 failed!!!!!!!";
-        echo "WORKINGWITH CHECK2 failed!!!!!!!";
-        echo "WORKINGWITH CHECK2 failed!!!!!!!";
-        echo "WORKINGWITH CHECK2 failed!!!!!!!";
-        echo "WORKINGWITH CHECK2 failed!!!!!!!";
-        echo "product:";echo $PRODUCT;
-        echo "remote:";cat /tmp/ww.2;
-        exit -1;
+        PRODUCT=$(cat ${PRODUCT_TARGET_ROOT}/configure.product);
+        (ssh root@$IP grep \"^PrinterConfigurator:.*Framework to boot\" /tmp/printer.log|sed -e"s/\[[0-9:. -]*\]//"|sed -e"s/  */ /g") > /tmp/ww.2;
+        grep $PRODUCT /tmp/ww.2 > /dev/null 2>&1;
+        if test ! $? -eq 0
+        then
+            echo "WORKINGWITH CHECK2 failed!!!!!!!";
+            echo "WORKINGWITH CHECK2 failed!!!!!!!";
+            echo "WORKINGWITH CHECK2 failed!!!!!!!";
+            echo "WORKINGWITH CHECK2 failed!!!!!!!";
+            echo "WORKINGWITH CHECK2 failed!!!!!!!";
+            echo "product:";echo $PRODUCT;
+            echo "remote:";cat /tmp/ww.2;
+            exit -1;
+        fi;
+    else
+        echo " no configure.product found!!";
     fi;
 }
 
