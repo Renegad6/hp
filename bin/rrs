@@ -23,6 +23,8 @@ FLAGS="-a --prune-empty-dirs"
 
 if [ "$1" = "-r" ];
 then
+    result=`svn status -q $AE_SANDBOX_PATH`
+    [ ! -z "$result" ] && echo "sandbox tainted!!" && exit -1
     TMP=$ORIG;
     ORIG=$DEST;
     DEST=$TMP;
