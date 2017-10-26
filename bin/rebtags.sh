@@ -17,8 +17,8 @@ then
 fi;
 cd $1;
 
-$LUX_BIN/bscope > /dev/null 2>&1;
-$LUX_BIN/btags > /dev/null 2>&1;
+/usersnfs/deantoni/common/hp/bin/bscope > /dev/null 2>&1;
+/usersnfs/deantoni/common/hp/bin/btags . > /dev/null 2>&1;
 
 echo "$(date): rebuild tags/cscope done" 2>&1 | tee -a $TRZ;
 
