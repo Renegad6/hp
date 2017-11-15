@@ -19,7 +19,7 @@ fi;
 
 ORIG=$MYSBOX;
 DEST=$AE_SANDBOX_PATH;
-FLAGS="-a --prune-empty-dirs"
+FLAGS="-a --delete"
 
 if [ "$1" = "-r" ];
 then
@@ -28,13 +28,6 @@ then
     TMP=$ORIG;
     ORIG=$DEST;
     DEST=$TMP;
-fi;
-
-if [ $ORIG = $AE_SANDBOX_PATH ];
-then
-    # if copying from sandbox , make sure to delete non existing files
-    echo "deleting non longer exisiting files!!!"
-    FLAGS=$FLAGS" --delete"
 fi;
 
 if [ "$1" = "-c" ];
@@ -49,11 +42,7 @@ echo "DEST:"$DEST;
 for d in bcd_io bcd_views elektra foundation printerInterface products;
 do
     echo "d:"$d;
-    rsync $FLAGS  \
-    --include='*.cpp' --include='*.h' --include='*.xml' --include='*.isd' --include="*.fsm*" --include="*.xsd" --include="*.tcl" --include="*.py" --include="*.i" --include="*.tcl_i" \
-    --include='*/'\
-    --exclude="*"\
-    $ORIG/$d/ $DEST/$d/
+    rsync $FLAGS --exclude-from .gitignore --exclude-from ign.endings $ORIG/$d/ $DEST/$d/
 done;
 
 exit 0;
