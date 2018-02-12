@@ -26,7 +26,6 @@ check () {
         echo "CANILEAVE CHECK1 failed!!!!!!!";
         echo "CANILEAVE CHECK1 failed!!!!!!!";
         echo "remote(bootmode):"$bootmode
-        exit -1;
     fi;
 }
 
@@ -41,7 +40,6 @@ check2 () {
         echo "CANILEAVE CHECK2 failed!!!!!!!";
         echo "CANILEAVE CHECK2 failed!!!!!!!";
         echo "remote(override):"$override
-        exit -1;
     fi;
 }
 
@@ -56,7 +54,20 @@ check3 () {
         echo "CANILEAVE CHECK3 failed!!!!!!!";
         echo "CANILEAVE CHECK3 failed!!!!!!!";
         echo "remote(severe):"$severe
-        exit -1;
+    fi;
+}
+
+check4 () {
+# se deja workflows.fixed?
+    exists=$(ssh root@$IP [ -f /permanent/product/proto_workflows.fixed ]|echo $?)
+    if test $exists -eq 0
+    then
+        echo "CANILEAVE CHECK4 failed!!!!!!!";
+        echo "CANILEAVE CHECK4 failed!!!!!!!";
+        echo "CANILEAVE CHECK4 failed!!!!!!!";
+        echo "CANILEAVE CHECK4 failed!!!!!!!";
+        echo "CANILEAVE CHECK4 failed!!!!!!!";
+        echo "remote(proto_workflows.fixed):"$severe
     fi;
 }
 
@@ -71,3 +82,4 @@ echo IP=$IP
 check;
 check2;
 check3;
+check4;

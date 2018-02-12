@@ -15,5 +15,5 @@ BCKDIR=/usersnfs/$USER/common/backup
 TRZ=~/bckup.trz;
 
 source $(getScriptPath)/common.sh;
-find $AE_SANDBOX_PATH \( -path ./*/TARGETS -o -name .svn -o -name work -o -name opkgbuild -o -name 3rdparty \) -prune -o $* | tee /tmp/aefout
+find $AE_SANDBOX_PATH \( -path ./*/TARGETS -o -name .svn -o -name work -o -name opkgbuild -o -name 3rdparty \) -prune -o $* -print | tee /tmp/aefout
 exit 0;

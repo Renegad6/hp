@@ -23,10 +23,13 @@ FLAGS="-a --delete"
 
 if [ "$1" = "-r" ];
 then
-    result=`svn status -q $AE_SANDBOX_PATH`
-    [ ! -z "$result" ] && echo "sandbox tainted!!" && exit -1
-    result=`svn status $AE_SANDBOX_PATH | grep -e ^?`
-    [ ! -z "$result" ] && echo "sandbox tainted!!" && exit -1
+    if [ "$2" != "-f" ];
+    then
+        result=`svn status -q $AE_SANDBOX_PATH`
+        [ ! -z "$result" ] && echo "sandbox tainted!!" && exit -1
+        result=`svn status $AE_SANDBOX_PATH | grep -e ^?`
+        [ ! -z "$result" ] && echo "sandbox tainted!!" && exit -1
+    fi
     TMP=$ORIG;
     ORIG=$DEST;
     DEST=$TMP;
