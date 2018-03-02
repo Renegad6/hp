@@ -59,15 +59,15 @@ check3 () {
 
 check4 () {
 # se deja workflows.fixed?
-    exists=$(ssh root@$IP [ -f /permanent/product/proto_workflows.fixed ]|echo $?)
-    if test $exists -eq 0
+    exists=$(ssh root@$IP [ -f /permanent/product/proto_workflows.fixed ] && echo 1 || echo 0 )
+    if test $exists -eq 1
     then
         echo "CANILEAVE CHECK4 failed!!!!!!!";
         echo "CANILEAVE CHECK4 failed!!!!!!!";
         echo "CANILEAVE CHECK4 failed!!!!!!!";
         echo "CANILEAVE CHECK4 failed!!!!!!!";
         echo "CANILEAVE CHECK4 failed!!!!!!!";
-        echo "remote(proto_workflows.fixed):"$severe
+        echo "remote(proto_workflows.fixed):"$exists
     fi;
 }
 
