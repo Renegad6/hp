@@ -1,0 +1,25 @@
+#!/bin/sh 
+# $Header:$
+# Pass changeset from MYSBOX to current AE_SANDBOX_PATH
+
+getScriptPath () {
+  echo ${0%/*}/
+}
+
+if [ -z "$AE_SANDBOX_PATH" ]
+then
+    echo "ae_init_sandbox not performed, impossible to detect risks!!!";
+    exit -1;
+fi;
+
+echo generating files changed from $AE_SANDBOX_PATH
+cd $AE_SANDBOX_PATH;svn status|grep "^M "|sed -e"s/  */ /g"|cut -f2 -d" "> /tmp/$$pasademi
+
+# for each file modified copy the one from sanbox
+
+while read p; do
+  echo "passing:"$p;
+  cp -p $MYSBOX/$p $AE_SANDBOX_PATH/$p;
+done < /tmp/$$pasademi;
+
+exit 0;

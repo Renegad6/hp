@@ -1,0 +1,30 @@
+#!/bin/sh 
+# $Header:$
+# Pass changeset from bcd_local to current AE_SANDBOX_PATH
+
+getScriptPath () {
+  echo ${0%/*}/
+}
+
+if [ -z "$AE_SANDBOX_PATH" ]
+then
+    echo "ae_init_sandbox not performed, impossible to detect risks!!!";
+    exit -1;
+fi;
+
+SRC="/ae/bcd_local/"
+if [ "$SRC" = "$AE_SANDBOX_PATH" ]
+then
+    echo "you ARE in $AE_SANDBOX_PATH"
+    exit -1;
+fi;
+
+echo generating changeset from $SRC
+cd $SRC;svn diff --internal-diff > /tmp/$$changeset;
+cd $AE_SANDBOX_PATH;
+echo reverting current changes
+svn-revert.sh;
+echo applying changeset
+svn patch /tmp/$$changeset;
+
+exit 0;
