@@ -1,0 +1,24 @@
+#!/bin/sh 
+# $Header:$
+# Pass changeset from MYSBOX to current AE_SANDBOX_PATH
+
+getScriptPath () {
+  echo ${0%/*}/
+}
+
+if [ -z "$AE_SANDBOX_PATH" ]
+then
+    echo "ae_init_sandbox not performed, impossible to detect risks!!!";
+    exit -1;
+fi;
+
+echo generating changeset in $MYSBOX
+
+cd $MYSBOX;
+git diff master..$(git rev-parse --abbrev-ref HEAD) > /tmp/$$changeset || exit 1
+echo cleaning sbox in $AE_SANDBOX_PATH
+svn-revert.sh;svn-clean.sh;
+
+echo applying changeset in $AE_SANDBOX_PATH
+cd $AE_SANDBOX_PATH;patch -p1 -i /tmp/$$changeset
+exit $?;
