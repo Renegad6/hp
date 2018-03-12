@@ -1,0 +1,23 @@
+if ! test -f $1
+then
+	echo "[$1] not found!";
+	exit -1;
+fi;
+
+mkdir $$output;
+cd $$output;
+filename=`basename $1`
+fileext=${filename##*.}
+echo $fileext
+case $fileext in
+    trb)
+        echo file is a trb...
+        ccrypt -d -K manoloescobar ../$1;;
+    oms)
+        echo file is a oms...
+        ccrypt -d -K lanochemeconfunde ../$1;;
+esac
+
+gzip -dc ../$1 | tar xf -
+
+exit 0;
