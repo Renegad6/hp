@@ -71,6 +71,20 @@ check4 () {
     fi;
 }
 
+check5 () {
+# se deja /etc/motd?
+    exists=$(ssh root@$IP [ -f /etc/motd ] && echo 1 || echo 0 )
+    if test $exists -eq 1
+    then
+        echo "CANILEAVE CHECK5 failed!!!!!!!";
+        echo "CANILEAVE CHECK5 failed!!!!!!!";
+        echo "CANILEAVE CHECK5 failed!!!!!!!";
+        echo "CANILEAVE CHECK5 failed!!!!!!!";
+        echo "CANILEAVE CHECK5 failed!!!!!!!";
+        echo "remote(/etc/motd):"$exists
+    fi;
+}
+
 if test ! -z "$1"
 then
     IP=$1;
@@ -83,3 +97,4 @@ check;
 check2;
 check3;
 check4;
+check5;
