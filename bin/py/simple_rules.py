@@ -4,11 +4,11 @@ from predicates import *
 class rule:
     def __init__(self,predicate,action):
         self.current = None
-        self.flipped = None
+        self.flipped = False
         self.predicate = predicate
         self.action = action
     def reset(self):
-        self.flipped = None
+        self.flipped = False
     def eval(self):
         aux = self.current
         if(not self.flipped):
@@ -21,6 +21,7 @@ class simple_rules:
     def __init__(self,maxiters=10):
         self.rules = []
         self.maxiters = maxiters
+        self.debug = False
     def add(self,pred,action):
         self.rules.append(rule(pred,action))
         return len(self.rules)
@@ -31,7 +32,7 @@ class simple_rules:
     def chain(self):
         for r in self.rules:
             r.reset()
-        for it in range(0,self.maxiters): # Limit iterations in case we have infinte loops
+        for it in range(0,self.maxiters): # Limit iterations in case we have infinite loops
             something_changed = False
             for r in self.rules:
                 r.eval()
@@ -43,3 +44,11 @@ class simple_rules:
     def dump(self):
         for r in self.rules:
             print 'rule:',r.predicate,',value:',r.current,',flipped:',r.flipped
+    def fact(self,function):
+        exec(function)
+        self.chain()
+        if(self.debug):
+            print 'Executed:',function
+            self.dump()
+    def set_debug(self,onoff):
+        self.debug = onoff

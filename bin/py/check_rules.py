@@ -3,12 +3,13 @@ from predicates import *
 from simple_rules import *
 
 rules = simple_rules()
-TRANSFER_PROGRESS = rules.add('connected() and file_transfer','print \'sending\'')
+rules.set_debug(False)
 
-rules.chain()
-rules.dump()
+rules.add('connected() and ft_standing()','begin_transfer()')
+rules.add('(not connected()) and ft_inprogress()','abort_transfer()')
+rules.add('connected() and ft_aborted()','resume_transfer()')
 
-disconnect()
-
-rules.chain()
-rules.dump()
+rules.fact('connect()')
+rules.fact('request_ft()')
+rules.fact('disconnect()')
+rules.fact('connect()')
