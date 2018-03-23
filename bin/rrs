@@ -6,6 +6,8 @@ getScriptPath () {
   echo ${0%/*}/
 }
 
+source $(getScriptPath)/common.sh;
+
 if [ -z "$AE_SANDBOX_PATH" ]
 then
     echo "ae_init_sandbox not performed, impossible to detect risks!!!";

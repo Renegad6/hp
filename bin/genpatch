@@ -1,0 +1,37 @@
+#!/bin/sh 
+# $Header:$
+# gen autoexec patch file
+
+getScriptPath () {
+  echo ${0%/*}/
+}
+
+source $(getScriptPath)/common.sh;
+
+if [ -z "$AE_SANDBOX_PATH" ]
+then
+    echo "ae_init_sandbox not performed, impossible to detect risks!!!";
+    exit -1;
+fi;
+
+ORIG=$MYSBOX;
+DEST=$AE_SANDBOX_PATH;
+
+if [ ! -f "$1"  ];
+then
+    echo $1 "doesnt exist";
+    exit -1;
+fi;
+
+PATCH=/tmp/$$patch
+echo "#!/bin/sh " >> $PATCH;
+echo "cat > /tmp/patch << EOF" >> $PATCH;
+cat $1 >> $PATCH;
+echo "EOF" >> $PATCH;
+echo "patch -p0 -i /tmp/patch;" >> $PATCH;
+echo "exit 0;" >> $PATCH;
+
+mv $PATCH $1.patch.sh;
+chmod +x $1.patch.sh;
+
+exit 0;
