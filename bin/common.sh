@@ -77,3 +77,10 @@ function newest_matching_file
 
     return 0
 }
+
+export n=0;
+function getfile()
+{
+    echo /tmp/$$temp.$n;
+    export n=$((n + 1));
+}

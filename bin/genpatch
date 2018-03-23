@@ -23,11 +23,12 @@ then
     exit -1;
 fi;
 
-PATCH=/tmp/$$patch
+PATCH=$(getfile);
 echo "#!/bin/sh " >> $PATCH;
-echo "cat > /tmp/patch << EOF" >> $PATCH;
-cat $1 >> $PATCH;
+echo "cat > /tmp/patch.gz << EOF" >> $PATCH;
+gzip -c $1|xxd -p >> $PATCH;
 echo "EOF" >> $PATCH;
+echo "xxd -p -r /tmp/patch.gz|gzip -dc > /tmp/patch" >> $PATCH;
 echo "patch -p0 -i /tmp/patch;" >> $PATCH;
 echo "exit 0;" >> $PATCH;
 
