@@ -56,7 +56,7 @@ echo "cat > /tmp/patch.gz << EOF" >> $PATCH;
 gzip -c $1|xxd -p >> $PATCH;
 echo "EOF" >> $PATCH;
 echo "xxd -p -r /tmp/patch.gz|gzip -dc > /tmp/patch" >> $PATCH;
-echo "patch -p0 -i /tmp/patch;" >> $PATCH;
+echo "patch -p1 -i /tmp/patch --forward -d\$AE_SANDBOX_PATH;" >> $PATCH;
 echo "exit 0;" >> $PATCH;
 
 mv $PATCH $1.patch.sh;
