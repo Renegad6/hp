@@ -15,7 +15,6 @@ then
 fi;
 
 ORIG=$MYSBOX;
-DEST=$AE_SANDBOX_PATH;
 
 if [ ! -f "$1"  ];
 then
@@ -26,17 +25,15 @@ fi;
 PATCH=$(getfile);
 echo "#!/bin/sh " >> $PATCH;
 cat >> $PATCH << EOF
-#!/bin/sh -eu
+function apply {
 
 PATCH=\$1
-OUTDIR=\$2
 
-test -f "\$PATCH" && test -d "\$OUTDIR"
+test -f "\$PATCH" 
 
 TDIR=\$(mktemp -d)
 trap 'rm -rf \$TDIR' 0
 
-INDEX=0
 TEMPHUNK=\$TDIR/current_hunk
 
 lsdiff \$1 | while read FNAME
@@ -48,11 +45,12 @@ do
         HUNK=\$((HUNK+1))
         test -s "\$TEMPHUNK" && \
             {
-                mv "\$TEMPHUNK" "\$OUTDIR/\$INDEX.diff"
-                INDEX=\$((INDEX+1))
+                patch --forward -p1 -i "\$TEMPHUNK" -d"\$AE_SANDBOX_PATH" --silent --batch
             } || break
     done
 done
+find \$AE_SANDBOX_PATH \( -path ./*/TARGETS -o -name .svn -o -name work -o -name opkgbuild -o -name 3rdparty \) -prune -o \( -name \*.orig -o -name \*.rej \) -print
+}
 EOF
 echo "cat > /tmp/patch.gz << EOF" >> $PATCH;
 gzip -c $1|xxd -p >> $PATCH;
