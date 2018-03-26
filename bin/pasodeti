@@ -21,7 +21,8 @@ fi;
 echo generating changeset in $MYSBOX
 
 cd $MYSBOX;
-git diff master..$(git rev-parse --abbrev-ref HEAD) > /tmp/$$changeset || exit 1
+#git diff master..$(git rev-parse --abbrev-ref HEAD) > /tmp/$$changeset || exit 1
+git format-patch master --stdout -p > /tmp/$$changeset || exit 1
 
 if [ $disable_revert -eq 0 ]
 then

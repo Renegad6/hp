@@ -2,11 +2,12 @@
 from predicates import *
 
 class rule:
-    def __init__(self,predicate,action):
+    def __init__(self,predicate,action,noaction):
         self.current = None
         self.flipped = False
         self.predicate = predicate
         self.action = action
+        self.noaction = noaction
     def reset(self):
         self.flipped = False
     def eval(self):
@@ -16,14 +17,16 @@ class rule:
             self.flipped = (aux!=self.current)
             if(self.current and self.flipped):
                 exec(self.action)
+            if((not self.current) and self.flipped):
+                exec(self.noaction)
 
 class simple_rules:
     def __init__(self,maxiters=10):
         self.rules = []
         self.maxiters = maxiters
         self.debug = False
-    def add(self,pred,action):
-        self.rules.append(rule(pred,action))
+    def add(self,pred,action,noaction):
+        self.rules.append(rule(pred,action,noaction))
         return len(self.rules)
     def check(self,n):
         return self.rules[n-1].current

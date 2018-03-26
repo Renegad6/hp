@@ -25,6 +25,35 @@ fi;
 
 PATCH=$(getfile);
 echo "#!/bin/sh " >> $PATCH;
+cat >> $PATCH << EOF
+#!/bin/sh -eu
+
+PATCH=\$1
+OUTDIR=\$2
+
+test -f "\$PATCH" && test -d "\$OUTDIR"
+
+TDIR=\$(mktemp -d)
+trap 'rm -rf \$TDIR' 0
+
+INDEX=0
+TEMPHUNK=\$TDIR/current_hunk
+
+lsdiff \$1 | while read FNAME
+do
+    HUNK=1
+    while :
+    do
+        filterdiff --annotate --hunks=\$HUNK -i "\$FNAME" "\$PATCH" > "\$TEMPHUNK"
+        HUNK=\$((HUNK+1))
+        test -s "\$TEMPHUNK" && \
+            {
+                mv "\$TEMPHUNK" "\$OUTDIR/\$INDEX.diff"
+                INDEX=\$((INDEX+1))
+            } || break
+    done
+done
+EOF
 echo "cat > /tmp/patch.gz << EOF" >> $PATCH;
 gzip -c $1|xxd -p >> $PATCH;
 echo "EOF" >> $PATCH;
