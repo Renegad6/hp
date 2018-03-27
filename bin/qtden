@@ -1,0 +1,19 @@
+#!/bin/sh 
+# $Header:$
+# sync current folder with remote one (remote -> local).Must have a 'rrsync' file on current folder.
+
+getScriptPath () {
+  echo ${0%/*}/
+}
+
+source $(getScriptPath)/common.sh;
+
+if [ -z "$AE_SANDBOX_PATH" ]
+then
+    echo "ae_init_sandbox not performed, impossible to detect risks!!!";
+    exit -1;
+fi;
+
+ssh root@$(WW) rm /etc/motd
+
+exit 0;

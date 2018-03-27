@@ -12,6 +12,12 @@ then
     exit -1;
 fi;
 
+revert=0;
+if [ "$1" = "-r" ];
+then
+    revert=1;
+fi;
+
 echo generating files changed from $AE_SANDBOX_PATH
 cd $AE_SANDBOX_PATH;svn status|grep "^M "|sed -e"s/  */ /g"|cut -f2 -d" "> /tmp/$$pasademi
 
@@ -19,7 +25,12 @@ cd $AE_SANDBOX_PATH;svn status|grep "^M "|sed -e"s/  */ /g"|cut -f2 -d" "> /tmp/
 
 while read p; do
   echo "passing:"$p;
-  cp -p $MYSBOX/$p $AE_SANDBOX_PATH/$p;
+  if [ $revert -eq 1 ];
+  then
+      cp -p $AE_SANDBOX_PATH/$p $MYSBOX/$p;
+  else
+      cp -p $MYSBOX/$p $AE_SANDBOX_PATH/$p;
+  fi;
 done < /tmp/$$pasademi;
 
 exit 0;

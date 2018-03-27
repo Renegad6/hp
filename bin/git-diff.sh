@@ -23,6 +23,7 @@ fi;
 
 BRANCH=$(basename $PWD);
 
-git format-patch master --stdout -p > ign.git_patch_$BRANCH;
+#git format-patch master --stdout -p > ign.git_patch_$BRANCH;
+git diff master..HEAD > ign.git_patch_$BRANCH
 
 exit 0;
