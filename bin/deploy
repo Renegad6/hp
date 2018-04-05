@@ -1,0 +1,21 @@
+# $1 = dbg/ass , $2 = 6,9,w
+
+getScriptPath () {
+  echo ${0%/*}/
+}
+
+source $(getScriptPath)/common.sh;
+
+if [ -z "$AE_SANDBOX_PATH" ]
+then
+    echo "ae_init_sandbox not performed, impossible to deploy!!!";
+    exit -1;
+fi;
+
+echo deploying to $(WW)
+doatlas scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null $AE_SANDBOX_PATH/work/build_output/jaguar/wrl80-haswell-$1/jaguar/RPMS/jaguar$2-night.fmw root@$(WW):/tmp/
+
+echo installing
+doatlas ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null root@$(WW) /home/foundation/bin/upgrade.sh --full /tmp/jaguar$2-night.fmw
+
+exit 0
