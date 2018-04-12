@@ -31,5 +31,5 @@ then
 fi;
 
 echo applying changeset in $AE_SANDBOX_PATH
-cd $AE_SANDBOX_PATH;patch -p1 -i /tmp/$$changeset
+cd $AE_SANDBOX_PATH;patch --forward --force -p1 -i /tmp/$$changeset
 exit $?;

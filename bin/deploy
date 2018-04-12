@@ -12,10 +12,23 @@ then
     exit -1;
 fi;
 
-echo deploying to $(WW)
-doatlas scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null $AE_SANDBOX_PATH/work/build_output/jaguar/wrl80-haswell-$1/jaguar/RPMS/jaguar$2-night.fmw root@$(WW):/tmp/
+PATTERN=$3;
+if [ "$PATTERN" = "WL" ]
+then
+    PATTERN="[0-9]\.unsigned";
+fi;
+PATHFMW=$AE_SANDBOX_PATH/work/build_output/jaguar/wrl80-haswell-$1/jaguar/RPMS
+if [ ! -z "$4" ]
+then
+    PATHFMW=$4;
+fi;
+
+fmw=$(ls $PATHFMW/[jJ][a-zA-Z]*$2*.fmw|grep $PATTERN\.|head -1);
+echo deploying $fmw to $(WW)
+sleep 5;
+doatlas scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null $fmw root@$(WW):/tmp/
 
 echo installing
-doatlas ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null root@$(WW) /home/foundation/bin/upgrade.sh --full /tmp/jaguar$2-night.fmw
+doatlas ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null root@$(WW) /home/foundation/bin/upgrade.sh --full /tmp/$(basename $fmw)
 
 exit 0
