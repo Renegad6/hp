@@ -18,6 +18,8 @@ export packstrunk=nebula.vcd.hp.com/packages/trunk_pkgs/int
 export cipacks=rndapp2.sdd.hp.com/ci_builds/sirius_trunk_mpkg_monitor/sirius_trunk_mpkg_monitor
 export ignorefiles="tags rrsync rebtags"
 
+export SSH_OPTIONS=" -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o PasswordAuthentication=no "
+
 absPath () {
     if [[ "$1" =~ ^/ ]]
     then

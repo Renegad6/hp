@@ -27,7 +27,7 @@ reset () {
 check () {
 #check
     grep $IP ~/workingwith.data|cut -f2- -d: > /tmp/ww.1;
-    (ssh root@$IP grep \"^PrinterConfigurator:.*Framework to boot\" /tmp/printer.log|sed -e"s/\[[0-9:. -]*\]//"|sed -e"s/  */ /g") > /tmp/ww.2;
+    (ssh $SSH_OPTIONS root@$IP grep \"^PrinterConfigurator:.*Framework to boot\" /tmp/printer.log|sed -e"s/\[[0-9:. -]*\]//"|sed -e"s/  */ /g") > /tmp/ww.2;
     cmp /tmp/ww.1 /tmp/ww.2 > /dev/null 2>&1;
     if test ! $? -eq 0
     then
@@ -45,7 +45,7 @@ check2 () {
     if test -f ${PRODUCT_TARGET_ROOT}/configure.product;
     then
         PRODUCT=$(cat ${PRODUCT_TARGET_ROOT}/configure.product);
-        (ssh root@$IP grep \"^PrinterConfigurator:.*Framework to boot\" /tmp/printer.log|sed -e"s/\[[0-9:. -]*\]//"|sed -e"s/  */ /g") > /tmp/ww.2;
+        (ssh $SSH_OPTIONS root@$IP grep \"^PrinterConfigurator:.*Framework to boot\" /tmp/printer.log|sed -e"s/\[[0-9:. -]*\]//"|sed -e"s/  */ /g") > /tmp/ww.2;
         grep $PRODUCT /tmp/ww.2 > /dev/null 2>&1;
         if test ! $? -eq 0
         then
@@ -64,7 +64,7 @@ check2 () {
 }
 
 check3 () {
-    (ssh root@$IP lsusb|grep -v root|grep -v VMware ) > /tmp/ww.2;
+    (ssh $SSH_OPTIONS root@$IP lsusb|grep -v root|grep -v VMware ) > /tmp/ww.2;
     if test -s /tmp/ww.2
     then
         echo "WORKINGWITH CHECK3 failed!!!!!!!";
@@ -79,7 +79,7 @@ check3 () {
 }
 
 check4 () {
-    CUANTOS=$(ssh root@$IP who|wc -l);
+    CUANTOS=$(ssh $SSH_OPTIONS root@$IP who|wc -l);
     if test $CUANTOS -gt 0
     then
         echo "WORKINGWITH CHECK4 failed!!!!!!!";
@@ -93,7 +93,7 @@ check4 () {
 }
 
 check5 () {
-    (ssh root@$IP ps -efa|egrep scp\|rsync|grep -v grep) > /tmp/ww.2;
+    (ssh $SSH_OPTIONS root@$IP ps -efa|egrep scp\|rsync|grep -v grep) > /tmp/ww.2;
     if test -s /tmp/ww.2
     then
         echo "WORKINGWITH CHECK5 failed!!!!!!!";
@@ -108,7 +108,7 @@ check5 () {
 }
 
 add () {
-    DATA=$(ssh root@$IP grep \"^PrinterConfigurator:.*Framework to boot\" /tmp/printer.log|sed -e"s/\[[0-9:. -]*\]//"|sed -e"s/  */ /g");
+    DATA=$(ssh $SSH_OPTIONS root@$IP grep \"^PrinterConfigurator:.*Framework to boot\" /tmp/printer.log|sed -e"s/\[[0-9:. -]*\]//"|sed -e"s/  */ /g");
     echo $IP:$DATA >> ~/workingwith.data;
     echo $DATA;
 }

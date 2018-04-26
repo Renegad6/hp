@@ -19,6 +19,6 @@ workingwith;
 
 IP=$(cat ~/workingwith.ip);
 
-ssh root@$IP $1 $2 $3 $4;
+ssh $SSH_OPTIONS root@$IP $1 $2 $3 $4;
 
 exit 0;
