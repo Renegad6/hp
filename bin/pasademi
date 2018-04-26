@@ -19,7 +19,7 @@ then
 fi;
 
 echo generating files changed from $AE_SANDBOX_PATH
-cd $AE_SANDBOX_PATH;svn status|grep "^M "|sed -e"s/  */ /g"|cut -f2 -d" "> /tmp/$$pasademi
+cd $AE_SANDBOX_PATH;svn status|grep "^[M|A] "|sed -e"s/  */ /g"|cut -f2 -d" "> /tmp/$$pasademi
 
 # for each file modified copy the one from sanbox
 
