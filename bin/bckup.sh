@@ -62,13 +62,13 @@ do
 echo "$(date) end bck" >> $TRZ;
 
 # Dump de svnrep (todos los proyectos)
-echo "$(date)  backing up svnrep " >> $TRZ;
-for d in $(ls -d /users/deantoni/svnrep/*);
-do
-    PRJ=$(basename $d);
-    echo "$(date)  ...... backing up: $PRJ " >> $TRZ;
-    (/usr/bin/svnadmin dump $d |gzip -c > /usersnfs/deantoni/common/backup/svnrep_$PRJ.dump.gz) > /dev/null 2>&1;
-done;
+#echo "$(date)  backing up svnrep " >> $TRZ;
+#for d in $(ls -d /users/deantoni/svnrep/*);
+#do
+#    PRJ=$(basename $d);
+#    echo "$(date)  ...... backing up: $PRJ " >> $TRZ;
+#    (/usr/bin/svnadmin dump $d |gzip -c > /usersnfs/deantoni/common/backup/svnrep_$PRJ.dump.gz) > /dev/null 2>&1;
+#done;
 
 # Dump de gitrep 
 export GIT_DIR=/ae/git/.git
