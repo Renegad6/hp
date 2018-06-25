@@ -46,10 +46,10 @@ fi;
 echo "ORIG:"$ORIG;
 echo "DEST:"$DEST;
 
-for d in bcd_io bcd_views elektra foundation printerInterface products;
+for d in bcd_io bcd_views elektra foundation printerInterface gsbShared/elektra gsbShared/foundation gsbShared/remote products;
 do
     echo "d:"$d;
-    rsync $FLAGS --exclude-from .gitignore --exclude-from ign.endings $ORIG/$d/ $DEST/$d/
+    rsync $FLAGS --exclude='.workspace/' --exclude='bin/' --exclude='.git/' --exclude-from .gitignore --exclude-from ign.endings $ORIG/$d/ $DEST/$d/
 done;
 
 exit 0;
