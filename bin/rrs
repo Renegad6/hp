@@ -14,11 +14,6 @@ then
     exit -1;
 fi;
 
-if [ "$AE_SANDBOX_PATH" = "$PWD" ];
-then
-    echo "trying sync from REAL!!! sandbox!!";
-fi;
-
 ORIG=$MYSBOX;
 DEST=$AE_SANDBOX_PATH;
 FLAGS="-a --delete"
@@ -37,19 +32,14 @@ then
     DEST=$TMP;
 fi;
 
-if [ "$1" = "-c" ];
-then
-    diff --brief -r $ORIG $DEST|grep -v "^Only";
-    exit 0;
-fi;
-
 echo "ORIG:"$ORIG;
 echo "DEST:"$DEST;
 
-for d in bcd_io bcd_views elektra foundation printerInterface gsbShared/elektra gsbShared/foundation gsbShared/remote products;
+#for d in bcd_io bcd_views elektra foundation printerInterface gsbShared/elektra gsbShared/foundation gsbShared/remote products;
+for d in ./
 do
     echo "d:"$d;
-    rsync $FLAGS --exclude='.workspace/' --exclude='bin/' --exclude='.git/' --exclude-from .gitignore --exclude-from ign.endings $ORIG/$d/ $DEST/$d/
+    rsync $FLAGS --exclude='work' --exclude='.workspace/' --exclude='bin/' --exclude='.git/' --exclude='.svn' --exclude "TARGETS/" --exclude-from $MYSBOX/.gitignore --exclude-from $MYSBOX/ign.endings $ORIG/$d/ $DEST/$d/
 done;
 
 exit 0;

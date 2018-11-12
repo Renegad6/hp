@@ -27,9 +27,9 @@ while read p; do
   echo "passing:"$p;
   if [ $revert -eq 1 ];
   then
-      cp -p $AE_SANDBOX_PATH/$p $MYSBOX/$p;
+      cp $AE_SANDBOX_PATH/$p $MYSBOX/$p;
   else
-      cp -p $MYSBOX/$p $AE_SANDBOX_PATH/$p;
+      cp $MYSBOX/$p $AE_SANDBOX_PATH/$p;
   fi;
 done < /tmp/$$pasademi;
 
