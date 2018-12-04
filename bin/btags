@@ -5,8 +5,7 @@ getScriptPath () {
   echo ${0%/*}/
 }
 source $(getScriptPath)/common.sh
-cd $1;
 
-ctags -R -a --exclude=work --exclude=*.py --exclude=.git --exclude=.svn --exclude=opkgbuild --exclude=TARGETS --exclude=*.js --exclude=3rdparty --exclude=third-party --exclude=*.html --c++-kinds=+p --fields=+iaS --extras=+q -f ign.tags $1;
+/usr/local/bin/ctags -R -a --exclude=work --exclude=*.py --exclude=.git --exclude=.svn --exclude=opkgbuild --exclude=TARGETS --exclude=*.js --exclude=3rdparty --exclude=third-party --exclude=*.html --c++-kinds=+p --fields=+iaS --extras=+q -f ign.tags .;
 
 exit 0;

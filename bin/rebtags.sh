@@ -15,10 +15,8 @@ then
     echo "$1 not found!" 2>&1|tee -a $TRZ;
     exit -1;
 fi;
-cd $1;
-
-/usersnfs/deantoni/common/hp/bin/bscope > /dev/null 2>&1;
-/usersnfs/deantoni/common/hp/bin/btags $1 > /dev/null 2>&1;
+cd $1 && /usersnfs/deantoni/common/hp/bin/bscope  > /dev/null 2>&1;
+cd $1 && /usersnfs/deantoni/common/hp/bin/btags  > /dev/null 2>&1;
 
 echo "$(date): rebuild tags/cscope done" 2>&1 | tee -a $TRZ;
 
