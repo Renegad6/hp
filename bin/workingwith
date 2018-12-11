@@ -27,18 +27,21 @@ reset () {
 check () {
 #check
     grep $IP ~/workingwith.data|cut -f2- -d: > /tmp/ww.1;
-    (ssh $SSH_OPTIONS root@$IP grep \"^PrinterConfigurator:.*Framework to boot\" /tmp/printer.log|sed -e"s/\[[0-9:. -]*\]//"|sed -e"s/  */ /g") > /tmp/ww.2;
-    cmp /tmp/ww.1 /tmp/ww.2 > /dev/null 2>&1;
-    if test ! $? -eq 0
+    if test -s /tmp/ww.1
     then
-        echo "WORKINGWITH CHECK1 failed!!!!!!!";
-        echo "WORKINGWITH CHECK1 failed!!!!!!!";
-        echo "WORKINGWITH CHECK1 failed!!!!!!!";
-        echo "WORKINGWITH CHECK1 failed!!!!!!!";
-        echo "WORKINGWITH CHECK1 failed!!!!!!!";
-        echo "local:";cat /tmp/ww.1;
-        echo "remote:";cat /tmp/ww.2;
-        exit -1;
+        (ssh $SSH_OPTIONS root@$IP grep \"^PrinterConfigurator:.*Framework to boot\" /tmp/printer.log|sed -e"s/\[[0-9:. -]*\]//"|sed -e"s/  */ /g") > /tmp/ww.2;
+        cmp /tmp/ww.1 /tmp/ww.2 > /dev/null 2>&1;
+        if test ! $? -eq 0
+        then
+            echo "WORKINGWITH CHECK1 failed!!!!!!!";
+            echo "WORKINGWITH CHECK1 failed!!!!!!!";
+            echo "WORKINGWITH CHECK1 failed!!!!!!!";
+            echo "WORKINGWITH CHECK1 failed!!!!!!!";
+            echo "WORKINGWITH CHECK1 failed!!!!!!!";
+            echo "local:";cat /tmp/ww.1;
+            echo "remote:";cat /tmp/ww.2;
+            exit -1;
+        fi;
     fi;
 }
 check2 () {
@@ -64,7 +67,7 @@ check2 () {
 }
 
 check3 () {
-    (ssh $SSH_OPTIONS root@$IP lsusb|grep -v root|grep -v VMware ) > /tmp/ww.2;
+    (ssh $SSH_OPTIONS root@$IP lsusb|grep -v root|grep -v VMware | grep -v " ID " ) > /tmp/ww.2;
     if test -s /tmp/ww.2
     then
         echo "WORKINGWITH CHECK3 failed!!!!!!!";
@@ -107,6 +110,21 @@ check5 () {
     fi;
 }
 
+check6 () {
+    (ssh $SSH_OPTIONS root@$IP cat /etc/motd) > /tmp/ww.2;
+    if test -s /tmp/ww.2
+    then
+        echo "WORKINGWITH CHECK6 failed!!!!!!!";
+        echo "WORKINGWITH CHECK6 failed!!!!!!!";
+        echo "WORKINGWITH CHECK6 failed!!!!!!!";
+        echo "WORKINGWITH CHECK6 failed!!!!!!!";
+        echo "WORKINGWITH CHECK6 failed!!!!!!!";
+        echo "motd exists!";
+        cat /tmp/ww.2;
+        exit -1;
+    fi;
+}
+
 add () {
     DATA=$(ssh $SSH_OPTIONS root@$IP grep \"^PrinterConfigurator:.*Framework to boot\" /tmp/printer.log|sed -e"s/\[[0-9:. -]*\]//"|sed -e"s/  */ /g");
     echo $IP:$DATA >> ~/workingwith.data;
@@ -136,6 +154,7 @@ then
     check3
     check4
     check5
+    check6;
     if test $? -eq 0
     then
         check;
@@ -152,6 +171,7 @@ then
     check5
     check;
     check2;
+    check6;
 else
     echo "workingwith.ip, not found! set first!";
     exit -1;
