@@ -12,7 +12,7 @@ then
     exit -1;
 fi;
 
-SRC="/ae/bcd_local/"
+SRC=$PWD;
 if [ "$SRC" = "$AE_SANDBOX_PATH" ]
 then
     echo "you ARE in $AE_SANDBOX_PATH"

@@ -16,7 +16,7 @@ fi;
 
 ORIG=$MYSBOX;
 DEST=$AE_SANDBOX_PATH;
-FLAGS="-a --delete"
+FLAGS="-a --delete --times"
 
 if [ "$1" = "-r" ];
 then
