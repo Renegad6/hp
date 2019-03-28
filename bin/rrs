@@ -42,4 +42,6 @@ do
     rsync $FLAGS --exclude='work/build_output' --exclude='.workspace/' --exclude='bin/' --exclude='.git/' --exclude='.svn' --exclude "TARGETS/" --exclude-from $MYSBOX/.gitignore --exclude-from $MYSBOX/ign.endings $ORIG/$d/ $DEST/$d/
 done;
 
+touch $MYSBOX/ign.sync;
+
 exit 0;
